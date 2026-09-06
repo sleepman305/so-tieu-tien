@@ -2,7 +2,7 @@
    Chỉ có một việc: giữ bản sao ba file của app để mở được khi mất mạng.
    Không cache font hay bất kỳ thứ gì từ CDN — app không gọi CDN lúc chạy. */
 
-const TEN_HOM = 'tingting-v3';
+const TEN_HOM = 'tingting-v4';
 const CAC_TEP = [
   './', './index.html', './manifest.webmanifest',
   './apple-touch-icon.png', './icon-192.png', './icon-512.png'

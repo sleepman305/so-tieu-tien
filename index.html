@@ -869,9 +869,46 @@ function tachCauNoi(cau) {
     var m = manh[i].trim();
     if (!m) continue;
     if (!boDau(m).replace(/[^a-z0-9]/g, '')) continue;   // mẩu chỉ toàn dấu câu
-    ra.push(tachMotKhoan(m));
+    var nho = tachTheoVa(m);
+    for (var j = 0; j < nho.length; j++) ra.push(tachMotKhoan(nho[j]));
   }
   return ra;
+}
+
+/**
+ * Cắt tiếp một mệnh đề tại chữ "và" khi sau nó là một khoản tiền nữa.
+ * @param {string} manh mệnh đề nguyên văn
+ * @returns {Array<string>} một hoặc nhiều mệnh đề con
+ *
+ * Người ta nói liền mạch "trừ 156.000 và trừ 120.000 tiền chợ" chứ ít khi ngắt
+ * hẳn bằng dấu chấm, mà máy nhận dạng cũng không tự chấm câu. Trước đây cả câu
+ * ấy chỉ ghi được một khoản, khoản thứ hai mất trắng — bắt được trên iPhone
+ * của anh ngày 07/09/2026.
+ *
+ * Hai chốt để không cắt bừa, vì "và" trong tiếng Việt phần lớn chỉ là nối từ:
+ * 1. Ngay sau "và" phải là một động từ mở đầu khoản (trừ, cộng, tiêu, nhận...).
+ * 2. Phần đứng sau đó phải thật sự đọc ra được một số tiền.
+ * Nhờ chốt thứ hai mà "cà phê và trà đá" không bị cắt, dù "trà" bỏ dấu thành
+ * "tra" trùng với từ khoá "trả".
+ */
+function tachTheoVa(manh) {
+  var tu = String(manh).trim().split(/\s+/).filter(function (t) { return t !== ''; });
+  var khong = tu.map(function (t) { return boDau(t).replace(/[,;:!?"'()]/g, ''); });
+  var ra = [];
+  var batDau = 0;
+
+  for (var i = 1; i < tu.length - 1; i++) {
+    if (khong[i] !== 'va') continue;
+    var ke = khong[i + 1];
+    if (TU_TRU.indexOf(ke) < 0 && TU_CONG.indexOf(ke) < 0) continue;
+    var sau = tu.slice(i + 1).join(' ');
+    if (tachMotKhoan(sau).soTien === null) continue;   // sau "và" không có tiền thì đừng cắt
+    ra.push(tu.slice(batDau, i).join(' '));
+    batDau = i + 1;
+  }
+
+  ra.push(tu.slice(batDau).join(' '));
+  return ra.filter(function (t) { return t.trim() !== ''; });
 }
 
 /**
@@ -954,6 +991,7 @@ var loaiDangChon = 'tru';
 var nguyenVanNhap = '';
 var boNghe = null;
 var dangNghe = false;
+var dangKhoiDong = false;   // đã bấm nút nhưng bộ nghe chưa kịp chạy
 
 /**
  * Mở IndexedDB, tạo đủ ba ngăn nếu chưa có.
@@ -1459,10 +1497,53 @@ function luuHopSua() {
 }
 
 /**
+ * Bật hay tắt vẻ ngoài của nút ghi và dải chữ đang nghe.
+ * @param {boolean} bat true là đang nghe
+ *
+ * Tách riêng để đổi được vẻ ngoài NGAY lúc bấm, không phải đợi sự kiện onstart.
+ * Trên iPhone onstart có khi tới chậm nửa giây, nút không đổi màu thì người dùng
+ * tưởng máy không nhận và bấm thêm phát nữa — chính cái bấm thêm ấy đẻ ra lỗi.
+ */
+function doiVeNutGhi(bat) {
+  document.getElementById('nut-ghi').classList.toggle('dang-nghe', bat);
+  document.getElementById('dai-nghe').classList.toggle('hien', bat);
+  if (bat) document.getElementById('chu-nghe').textContent = '';
+}
+
+/**
+ * Dọn sạch bộ nghe đang giữ, gỡ hết tay nghe sự kiện rồi huỷ hẳn.
+ *
+ * Gỡ tay nghe TRƯỚC khi abort là quan trọng: abort làm bộ nghe bắn ra onerror
+ * 'aborted' và onend, mà lúc đó ta đã bỏ nó rồi, để nguyên thì nó nhảy vào ghi
+ * sổ hoặc hiện báo lỗi của một phiên không còn tồn tại.
+ */
+function donBoNghe() {
+  if (!boNghe) return;
+  boNghe.onstart = null;
+  boNghe.onresult = null;
+  boNghe.onerror = null;
+  boNghe.onend = null;
+  try { boNghe.abort(); } catch (e) { /* nó chết sẵn rồi thì thôi */ }
+  boNghe = null;
+}
+
+/**
  * Bật bộ nghe của trình duyệt và ghi khoản khi nghe xong.
  *
  * Dùng Web Speech API với lang 'vi-VN'. Trình duyệt không có thì mở thẳng hộp
  * gõ tay — không để màn hình chết đứng.
+ *
+ * BẪY ĐÃ GẶP TRÊN IPHONE (07/09/2026): nói liền mấy câu là hiện
+ * "Nghe lỗi: aborted". Ba nguyên nhân chồng nhau, phải chữa cả ba:
+ * 1. Mỗi lần bấm lại tạo `new Bo()` mà KHÔNG dọn bộ cũ. iOS chỉ cho một bộ giữ
+ *    micro, bộ mới xin trong lúc bộ cũ chưa nhả thì bị huỷ ngay.
+ * 2. Cờ `dangNghe` chỉ bật trong onstart, mà onstart tới chậm. Bấm nhanh hai
+ *    nhịp thì nhịp sau thấy cờ vẫn tắt nên gọi start() lần nữa. Nay có thêm cờ
+ *    `dangKhoiDong` bật ngay từ lúc bấm để bịt đúng khe hở ấy.
+ * 3. 'aborted' bị đem ra báo cho người dùng, trong khi nó gần như luôn là hệ
+ *    quả của chính việc mình dừng hay bấm lại — không phải hỏng hóc gì.
+ * Mỗi tay nghe còn tự kiểm tra `boNghe !== may` rồi mới làm việc, nên phiên cũ
+ * dù có bắn sự kiện muộn cũng không đụng được vào phiên đang chạy.
  */
 function batNghe() {
   var Bo = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1471,25 +1552,29 @@ function batNghe() {
     moHopGoTay();
     return;
   }
-  if (dangNghe) { dungNghe(); return; }
+  if (dangNghe || dangKhoiDong) { dungNghe(); return; }
 
-  boNghe = new Bo();
-  boNghe.lang = 'vi-VN';
-  boNghe.interimResults = true;
-  boNghe.continuous = false;
-  boNghe.maxAlternatives = 1;
+  dangKhoiDong = true;
+  doiVeNutGhi(true);
+  donBoNghe();
+
+  var may = new Bo();
+  boNghe = may;
+  may.lang = 'vi-VN';
+  may.interimResults = true;
+  may.continuous = false;
+  may.maxAlternatives = 1;
 
   var cauCuoi = '';
-  var dai = document.getElementById('dai-nghe');
   var chu = document.getElementById('chu-nghe');
 
-  boNghe.onstart = function () {
+  may.onstart = function () {
+    if (boNghe !== may) return;
     dangNghe = true;
-    document.getElementById('nut-ghi').classList.add('dang-nghe');
-    chu.textContent = '';
-    dai.classList.add('hien');
+    dangKhoiDong = false;
   };
-  boNghe.onresult = function (sk) {
+  may.onresult = function (sk) {
+    if (boNghe !== may) return;
     var tam = '';
     for (var i = sk.resultIndex; i < sk.results.length; i++) {
       var mau = sk.results[i][0].transcript;
@@ -1497,24 +1582,52 @@ function batNghe() {
     }
     chu.textContent = (cauCuoi + tam).trim();
   };
-  boNghe.onerror = function (sk) {
-    nhanNgan(sk.error === 'not-allowed'
-      ? 'Chưa cho phép dùng micro' : 'Nghe lỗi: ' + sk.error, 3);
+  may.onerror = function (sk) {
+    if (boNghe !== may) return;
+    // 'aborted' là do chính mình dừng hoặc bấm lại, không phải hỏng — im lặng.
+    if (sk.error === 'aborted') return;
+    if (sk.error === 'no-speech') { nhanNgan('Không nghe thấy gì, thử lại nhé'); return; }
+    if (sk.error === 'not-allowed' || sk.error === 'service-not-allowed') {
+      nhanNgan('Chưa cho phép dùng micro', 3.4);
+      return;
+    }
+    nhanNgan('Nghe lỗi: ' + sk.error, 3);
   };
-  boNghe.onend = function () {
+  may.onend = function () {
+    if (boNghe !== may) return;
     dangNghe = false;
-    document.getElementById('nut-ghi').classList.remove('dang-nghe');
-    dai.classList.remove('hien');
+    dangKhoiDong = false;
+    doiVeNutGhi(false);
     var cau = cauCuoi.trim();
     if (cau) ghiCacKhoan(tachCauNoi(cau), 'noi');
   };
 
-  try { boNghe.start(); } catch (e) { nhanNgan('Không bật được micro'); }
+  // Chờ một nhịp cho iOS nhả hẳn micro của phiên trước rồi mới xin lại.
+  // Gọi start() ngay sau abort() thì gần như chắc chắn ăn 'aborted'.
+  setTimeout(function () {
+    if (boNghe !== may) return;
+    try {
+      may.start();
+    } catch (e) {
+      dangKhoiDong = false;
+      doiVeNutGhi(false);
+      nhanNgan('Micro đang bận, anh bấm lại sau một nhịp', 3);
+    }
+  }, 180);
 }
 
 /** Dừng bộ nghe giữa chừng; sự kiện onend sẽ lo phần ghi sổ. */
 function dungNghe() {
-  if (boNghe) { try { boNghe.stop(); } catch (e) { /* đã dừng rồi */ } }
+  if (!boNghe) { dangKhoiDong = false; doiVeNutGhi(false); return; }
+  try {
+    boNghe.stop();
+  } catch (e) {
+    // stop() ném khi bộ nghe còn chưa kịp chạy: dọn tay để khỏi treo nút
+    donBoNghe();
+    dangNghe = false;
+    dangKhoiDong = false;
+    doiVeNutGhi(false);
+  }
 }
 
 /** Mở hộp gõ nguyên câu, dùng khi máy không nghe được hoặc anh muốn gõ. */
