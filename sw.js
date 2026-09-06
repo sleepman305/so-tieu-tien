@@ -2,8 +2,11 @@
    Chỉ có một việc: giữ bản sao ba file của app để mở được khi mất mạng.
    Không cache font hay bất kỳ thứ gì từ CDN — app không gọi CDN lúc chạy. */
 
-const TEN_HOM = 'so-tieu-tien-v1';
-const CAC_TEP = ['./', './index.html', './manifest.webmanifest'];
+const TEN_HOM = 'so-tieu-tien-v2';
+const CAC_TEP = [
+  './', './index.html', './manifest.webmanifest',
+  './apple-touch-icon.png', './icon-192.png', './icon-512.png'
+];
 
 /** Cài đặt: tải sẵn các tệp của app vào hòm cache. */
 self.addEventListener('install', (sk) => {

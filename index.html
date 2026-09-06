@@ -8,6 +8,11 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Sổ tiêu tiền">
 <link rel="manifest" href="manifest.webmanifest">
+<!-- iOS không đọc icon trong manifest khi "Thêm vào Màn hình chính", chỉ tìm
+     đúng thẻ apple-touch-icon này. Thiếu nó thì iPhone lấy ảnh chụp màn hình
+     làm biểu tượng. Sinh lại các tệp png bằng: node thu/tao-bieu-tuong.js -->
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <title>Sổ tiêu tiền</title>
 <style>
 /* Bảng màu bê nguyên từ Dashboard công việc để hai app nhìn ra là một bộ.
