@@ -1,0 +1,2023 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#123C91">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sổ tiêu tiền">
+<link rel="manifest" href="manifest.webmanifest">
+<title>Sổ tiêu tiền</title>
+<style>
+/* Bảng màu bê nguyên từ Dashboard công việc để hai app nhìn ra là một bộ.
+   Font dùng stack hệ thống vì app không được gọi CDN lúc chạy. */
+:root{
+  --navy:#123C91; --navy-2:#0C2C6E; --teal:#1E56C8;
+  --gold:#F4B60E; --gold-2:#FFD24A;
+  --paper:#EDF1F9; --card:#FFFFFF; --ink:#16223B; --ink-soft:#5B6B88; --line:#E1E7F3;
+  --red:#D81E28; --red-bg:#FCE9EA;
+  --green:#1E9E5A; --green-bg:#E4F5EC;
+  --amber:#B9820C; --amber-bg:#FBF1D8;
+  --radius:16px; --shadow:0 6px 20px rgba(18,44,110,.09);
+  --day-thanh:96px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;}
+body{
+  font-family:-apple-system,'SF Pro Text',system-ui,'Segoe UI',Roboto,sans-serif;
+  background:var(--paper); color:var(--ink); line-height:1.45; font-size:15px;
+  padding-bottom:calc(var(--day-thanh) + env(safe-area-inset-bottom));
+}
+button{font-family:inherit;}
+
+/* ---- Đầu trang ---- */
+header{
+  background:linear-gradient(150deg,#1A4FB2 0%,#123C91 45%,#0C2C6E 100%);
+  color:#fff; padding:calc(14px + env(safe-area-inset-top)) 16px 14px;
+  border-bottom:3px solid var(--gold);
+  position:sticky; top:0; z-index:20;
+}
+header h1{margin:0; font-size:19px; font-weight:800; letter-spacing:.2px;}
+header .phu{font-size:10.5px; font-weight:700; letter-spacing:2px;
+  text-transform:uppercase; color:var(--gold); opacity:.92; margin-top:1px;}
+header .hang{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.nut-dau{background:rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.28);
+  border-radius:999px; padding:6px 13px; font-size:12.5px; font-weight:700; cursor:pointer;}
+.nut-dau:active{background:rgba(255,255,255,.26);}
+
+.than{padding:14px 14px 8px;}
+
+/* ---- Thẻ chung ---- */
+.the{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px;}
+
+/* ---- Số dư ---- */
+.the-du{text-align:center; padding:20px 16px 18px; margin-bottom:12px;}
+.the-du .nhan{font-size:11px; font-weight:800; letter-spacing:2px;
+  text-transform:uppercase; color:var(--ink-soft);}
+.the-du .so{font-size:34px; font-weight:800; letter-spacing:-.5px; margin-top:4px;
+  line-height:1.15; word-break:break-word;}
+.the-du .so.duong{color:var(--green);} .the-du .so.am{color:var(--red);}
+.the-du .ghi{font-size:12px; color:var(--ink-soft); margin-top:4px;}
+
+/* ---- Chip chọn mốc ---- */
+.day-chip{display:flex; gap:7px; margin-bottom:12px;}
+.chip{flex:1; text-align:center; padding:8px 4px; border-radius:999px;
+  border:1px solid var(--line); background:var(--card); color:var(--ink-soft);
+  font-size:13.5px; font-weight:700; cursor:pointer;}
+.chip.chon{background:var(--navy); border-color:var(--navy); color:#fff;}
+
+/* ---- Ba ô thống kê ---- */
+.luoi-3{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:14px;}
+.o-tk{background:var(--card); border-radius:12px; box-shadow:var(--shadow);
+  padding:11px 8px; text-align:center; min-width:0;}
+.o-tk .ten{font-size:10.5px; font-weight:800; letter-spacing:.6px;
+  text-transform:uppercase; color:var(--ink-soft); white-space:nowrap;}
+.o-tk .gt{font-size:15px; font-weight:800; margin-top:3px; word-break:break-word; line-height:1.2;}
+.o-tk .gt.thu{color:var(--green);} .o-tk .gt.chi{color:var(--red);} .o-tk .gt.con{color:var(--navy);}
+
+/* ---- Tiêu đề mục ---- */
+.tieu-muc{font-size:12px; font-weight:800; letter-spacing:.8px; text-transform:uppercase;
+  color:var(--navy-2); border-bottom:2px solid var(--gold); padding-bottom:6px;
+  margin:4px 0 10px;}
+.nhan-ngay{font-size:12.5px; font-weight:800; color:var(--ink-soft);
+  margin:14px 0 7px; display:flex; justify-content:space-between; align-items:baseline; gap:8px;}
+.nhan-ngay .cong{font-weight:800;}
+
+/* ---- Một khoản ---- */
+.khoan{background:var(--card); border-radius:12px; box-shadow:var(--shadow);
+  padding:11px 13px; margin-bottom:8px; display:flex; gap:11px; align-items:flex-start;}
+.khoan.tru{box-shadow:var(--shadow), inset 3px 0 0 var(--red);}
+.khoan.cong{box-shadow:var(--shadow), inset 3px 0 0 var(--green);}
+.khoan .dau{width:27px; height:27px; border-radius:50%; flex:none; display:flex;
+  align-items:center; justify-content:center; font-weight:800; font-size:16px; margin-top:1px;}
+.khoan.tru .dau{background:var(--red-bg); color:var(--red);}
+.khoan.cong .dau{background:var(--green-bg); color:var(--green);}
+.khoan .giua{flex:1; min-width:0;}
+.khoan .ly-do{font-weight:700; font-size:14.5px; word-break:break-word;}
+.khoan .luc{font-size:11.5px; color:var(--ink-soft); margin-top:2px;}
+.khoan .goc{font-size:11px; color:var(--ink-soft); font-style:italic; margin-top:3px;
+  word-break:break-word; opacity:.85;}
+.khoan .phai{text-align:right; flex:none; display:flex; flex-direction:column;
+  align-items:flex-end; gap:5px;}
+.khoan .tien{font-weight:800; font-size:14.5px; white-space:nowrap;}
+.khoan.tru .tien{color:var(--red);} .khoan.cong .tien{color:var(--green);}
+.nut-nho{background:none; border:1px solid var(--line); color:var(--ink-soft);
+  border-radius:8px; padding:3px 9px; font-size:11px; font-weight:700; cursor:pointer;}
+.nut-nho:active{background:var(--paper);}
+
+.trong{text-align:center; color:var(--ink-soft); padding:34px 10px; font-size:14px;}
+
+/* ---- Thanh đáy: 3 tab + nút ghi nổi giữa ---- */
+.thanh-day{position:fixed; left:0; right:0; bottom:0; z-index:30;
+  background:var(--card); border-top:1px solid var(--line);
+  box-shadow:0 -4px 18px rgba(18,44,110,.10);
+  padding:8px 8px calc(6px + env(safe-area-inset-bottom));
+  display:grid; grid-template-columns:1fr 84px 1fr; align-items:end;}
+.tab{display:flex; flex-direction:column; align-items:center; gap:2px;
+  background:none; border:none; color:var(--ink-soft); font-size:10.5px;
+  font-weight:700; cursor:pointer; padding:5px 2px; line-height:1.25;}
+.tab .hinh{font-size:17px; line-height:1;}
+.tab.chon{color:var(--navy);}
+.cap-tab{display:grid; grid-template-columns:1fr 1fr; gap:2px;}
+.o-ghi{display:flex; justify-content:center;}
+.nut-ghi{width:66px; height:66px; border-radius:50%; border:none; cursor:pointer;
+  background:linear-gradient(160deg,#FFD24A,#F4B60E); color:var(--navy-2);
+  font-size:27px; font-weight:800; box-shadow:0 6px 18px rgba(244,182,14,.5);
+  margin-top:-26px; display:flex; align-items:center; justify-content:center;}
+.nut-ghi:active{transform:scale(.94);}
+.nut-ghi.dang-nghe{background:linear-gradient(160deg,#FF6B6B,#D81E28); color:#fff;
+  box-shadow:0 6px 18px rgba(216,30,40,.5); animation:nhip 1.1s ease-in-out infinite;}
+@keyframes nhip{0%,100%{box-shadow:0 6px 18px rgba(216,30,40,.5);}
+  50%{box-shadow:0 6px 26px rgba(216,30,40,.85);}}
+
+/* ---- Dải trạng thái khi đang nghe ---- */
+.dai-nghe{position:fixed; left:10px; right:10px;
+  bottom:calc(var(--day-thanh) + 8px + env(safe-area-inset-bottom)); z-index:29;
+  background:var(--navy-2); color:#fff; border-radius:12px; padding:10px 14px;
+  font-size:13px; box-shadow:0 6px 20px rgba(12,44,110,.35); display:none;}
+.dai-nghe.hien{display:block;}
+.dai-nghe b{color:var(--gold);}
+
+/* ---- Hộp thoại ---- */
+.man-che{position:fixed; inset:0; background:rgba(12,34,59,.55); z-index:40;
+  display:none; align-items:flex-end; justify-content:center;}
+.man-che.hien{display:flex;}
+.hop{background:var(--card); width:100%; max-width:430px;
+  border-radius:18px 18px 0 0; padding:18px 16px calc(18px + env(safe-area-inset-bottom));
+  max-height:92vh; overflow-y:auto;}
+.hop h2{margin:0 0 4px; font-size:17px; font-weight:800;}
+.hop .dan{font-size:12.5px; color:var(--ink-soft); margin-bottom:12px;}
+.hop label{display:block; font-size:11.5px; font-weight:800; letter-spacing:.5px;
+  text-transform:uppercase; color:var(--ink-soft); margin:11px 0 4px;}
+.hop input,.hop textarea,.hop select{width:100%; border:1px solid var(--line);
+  border-radius:10px; padding:11px 12px; font-size:16px; font-family:inherit;
+  color:var(--ink); background:#fff;}
+.hop textarea{min-height:70px; resize:vertical;}
+.cap-loai{display:grid; grid-template-columns:1fr 1fr; gap:8px;}
+.nut-loai{padding:11px; border-radius:10px; border:1px solid var(--line);
+  background:var(--card); font-weight:800; font-size:14px; cursor:pointer; color:var(--ink-soft);}
+.nut-loai.chon-tru{background:var(--red-bg); border-color:var(--red); color:var(--red);}
+.nut-loai.chon-cong{background:var(--green-bg); border-color:var(--green); color:var(--green);}
+.hang-nut{display:flex; gap:8px; margin-top:16px;}
+.nut-chinh{flex:1; background:var(--navy); color:#fff; border:none; border-radius:10px;
+  padding:13px; font-weight:800; font-size:15px; cursor:pointer;}
+.nut-phu{flex:1; background:var(--card); color:var(--navy); border:1px solid var(--line);
+  border-radius:10px; padding:13px; font-weight:800; font-size:15px; cursor:pointer;}
+.nut-do{background:var(--red-bg); color:var(--red); border:1px solid var(--red);
+  border-radius:10px; padding:13px; font-weight:800; font-size:15px; cursor:pointer;}
+.canh-bao{background:var(--amber-bg); color:var(--amber); border-radius:10px;
+  padding:10px 12px; font-size:12.5px; font-weight:600; margin:10px 0;}
+.dong-tin{font-size:12.5px; color:var(--ink-soft); margin-top:10px;}
+.dong-tin b{color:var(--ink);}
+
+/* ---- Một bản sao lưu trong danh sách ---- */
+.ban-sl{border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-top:8px;}
+.ban-dau{display:flex; justify-content:space-between; align-items:flex-start; gap:8px;}
+.ban-luc{font-weight:800; font-size:13.5px;}
+.ban-phu{font-size:11.5px; color:var(--ink-soft); margin-top:1px;}
+.ban-nhan{flex:none; font-size:10px; font-weight:800; padding:2px 8px; border-radius:999px;
+  background:var(--paper); color:var(--ink-soft); white-space:nowrap;}
+.ban-nhan.tay{background:var(--green-bg); color:var(--green);}
+.ban-nhan.mo-app{background:#E7EEFB; color:var(--navy);}
+.ban-nhan.dinh-ky{background:var(--amber-bg); color:var(--amber);}
+.ban-xem{margin-top:8px; padding:9px 10px; background:var(--paper); border-radius:9px;
+  font-size:11.5px; color:var(--ink); white-space:pre-wrap; word-break:break-word;
+  font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace; line-height:1.5;}
+.ban-nut{display:flex; gap:6px; margin-top:9px; flex-wrap:wrap;}
+.ban-nut .nut-nho{flex:1; min-width:62px; padding:6px 4px;}
+
+/* ---- Lời nhắn thoáng qua ---- */
+.nhan-thoang{position:fixed; left:50%; transform:translateX(-50%);
+  bottom:calc(var(--day-thanh) + 16px + env(safe-area-inset-bottom)); z-index:50;
+  background:var(--navy-2); color:#fff; padding:10px 16px; border-radius:999px;
+  font-size:13px; font-weight:600; box-shadow:0 6px 20px rgba(12,44,110,.35);
+  max-width:88vw; text-align:center; display:none;}
+.nhan-thoang.hien{display:block;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hang">
+    <div>
+      <h1>Sổ tiêu tiền</h1>
+      <div class="phu" id="phu-dau">Tổng quan</div>
+    </div>
+    <button class="nut-dau" id="nut-du-lieu" type="button">Cài đặt</button>
+  </div>
+</header>
+
+<main class="than">
+  <!-- TRANG TỔNG -->
+  <section id="trang-tong">
+    <div class="the the-du">
+      <div class="nhan">Số dư hiện có</div>
+      <div class="so" id="so-du">0 đ</div>
+      <div class="ghi" id="ghi-so-du">Chưa có khoản nào</div>
+    </div>
+    <div class="day-chip" id="chip-tong"></div>
+    <div class="luoi-3">
+      <div class="o-tk"><div class="ten">Thu vào</div><div class="gt thu" id="tk-thu">0 đ</div></div>
+      <div class="o-tk"><div class="ten">Chi ra</div><div class="gt chi" id="tk-chi">0 đ</div></div>
+      <div class="o-tk"><div class="ten">Còn lại</div><div class="gt con" id="tk-con">0 đ</div></div>
+    </div>
+    <div class="tieu-muc">Dòng thời gian</div>
+    <div id="ds-tong"></div>
+  </section>
+
+  <!-- TRANG TIỀN TIÊU ĐI -->
+  <section id="trang-chi" hidden>
+    <div class="day-chip" id="chip-chi"></div>
+    <div class="the the-du">
+      <div class="nhan">Đã tiêu <span id="ten-moc-chi">trong ngày</span></div>
+      <div class="so am" id="tong-chi">0 đ</div>
+      <div class="ghi" id="ghi-chi">Chưa có khoản nào</div>
+    </div>
+    <div class="tieu-muc">Từng khoản đã tiêu</div>
+    <div id="ds-chi"></div>
+  </section>
+
+  <!-- TRANG TIỀN KIẾM VỀ -->
+  <section id="trang-thu" hidden>
+    <div class="day-chip" id="chip-thu"></div>
+    <div class="the the-du">
+      <div class="nhan">Đã nhận <span id="ten-moc-thu">trong ngày</span></div>
+      <div class="so duong" id="tong-thu">0 đ</div>
+      <div class="ghi" id="ghi-thu">Chưa có khoản nào</div>
+    </div>
+    <div class="tieu-muc">Từng khoản kiếm về</div>
+    <div id="ds-thu"></div>
+  </section>
+</main>
+
+<div class="dai-nghe" id="dai-nghe">Đang nghe… <b id="chu-nghe"></b></div>
+<div class="nhan-thoang" id="nhan-thoang"></div>
+
+<nav class="thanh-day">
+  <div class="cap-tab">
+    <button class="tab chon" type="button" data-trang="tong"><span class="hinh">◆</span>Tổng</button>
+    <button class="tab" type="button" data-trang="chi"><span class="hinh">▼</span>Tiêu đi</button>
+  </div>
+  <div class="o-ghi">
+    <button class="nut-ghi" id="nut-ghi" type="button" aria-label="Bấm để nói">🎙</button>
+  </div>
+  <div class="cap-tab">
+    <button class="tab" type="button" data-trang="thu"><span class="hinh">▲</span>Kiếm về</button>
+    <button class="tab" type="button" id="tab-go-tay"><span class="hinh">✎</span>Gõ tay</button>
+  </div>
+</nav>
+
+<!-- Hộp sửa / thêm một khoản -->
+<div class="man-che" id="che-sua">
+  <div class="hop">
+    <h2 id="tua-sua">Sửa khoản</h2>
+    <div class="dan" id="dan-sua"></div>
+    <div id="bao-nhap"></div>
+    <label>Loại khoản</label>
+    <div class="cap-loai">
+      <button class="nut-loai" type="button" id="chon-tru">− Tiền tiêu đi</button>
+      <button class="nut-loai" type="button" id="chon-cong">+ Tiền kiếm về</button>
+    </div>
+    <label>Số tiền (đồng)</label>
+    <input id="o-tien" type="text" inputmode="numeric" autocomplete="off" placeholder="100.000">
+    <label>Lý do</label>
+    <input id="o-ly-do" type="text" autocomplete="off" placeholder="mua nước ngọt">
+    <label>Ngày giờ</label>
+    <input id="o-luc" type="datetime-local">
+    <div class="hang-nut">
+      <button class="nut-phu" type="button" id="huy-sua">Bỏ qua</button>
+      <button class="nut-chinh" type="button" id="luu-sua">Lưu</button>
+    </div>
+    <div class="hang-nut" id="hang-xoa">
+      <button class="nut-do" style="flex:1" type="button" id="xoa-khoan">Xoá khoản này</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hộp gõ tay cả câu -->
+<div class="man-che" id="che-go-tay">
+  <div class="hop">
+    <h2>Gõ câu như khi nói</h2>
+    <div class="dan">Ví dụ: <i>Tiêu một trăm nghìn, lý do mua nước ngọt. Nhận hai triệu, lý do tiền công tác phí.</i></div>
+    <textarea id="o-cau" placeholder="Trừ 100k, lý do ăn sáng"></textarea>
+    <div class="hang-nut">
+      <button class="nut-phu" type="button" id="huy-go-tay">Bỏ qua</button>
+      <button class="nut-chinh" type="button" id="luu-go-tay">Ghi vào sổ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hộp cài đặt và sao lưu -->
+<div class="man-che" id="che-du-lieu">
+  <div class="hop">
+    <h2>Cài đặt &amp; sao lưu</h2>
+    <div class="dan" id="dan-du-lieu"></div>
+
+    <label>Tự động sao lưu</label>
+    <select id="chon-tu-dong">
+      <option value="tat">Tắt</option>
+      <option value="mo-app">Mỗi lần mở app</option>
+      <option value="1h">Mỗi 1 giờ</option>
+      <option value="6h">Mỗi 6 giờ</option>
+      <option value="12h">Mỗi 12 giờ</option>
+      <option value="24h">Mỗi 24 giờ</option>
+    </select>
+
+    <label>Giữ lại bao nhiêu bản</label>
+    <select id="chon-giu">
+      <option value="10">10 bản gần nhất</option>
+      <option value="30">30 bản gần nhất</option>
+      <option value="50">50 bản gần nhất</option>
+    </select>
+
+    <div class="dong-tin">Sao lưu gần nhất: <b id="lan-cuoi">chưa sao lưu lần nào</b></div>
+
+    <div class="hang-nut" id="hang-sao-luu">
+      <button class="nut-chinh" type="button" id="nut-backup">Sao lưu ngay</button>
+      <button class="nut-phu" type="button" id="nut-xuat">Ra tệp</button>
+    </div>
+
+    <div id="khung-thu-muc"></div>
+
+    <label>Các bản đã sao lưu (<span id="dem-sao-luu">0</span>)</label>
+    <div id="ds-sao-luu"></div>
+
+    <label>Khôi phục từ tệp bên ngoài</label>
+    <input id="o-nap" type="file" accept="application/json,.json">
+
+    <div class="hang-nut">
+      <button class="nut-phu" type="button" id="dong-du-lieu">Đóng</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ==== MO DAU BO TACH ====
+   Toàn bộ đoạn giữa hai dấu mốc này là logic thuần, không đụng DOM và không đụng
+   IndexedDB. Bộ thử trong thu/ cắt đúng đoạn này ra rồi eval để chạy trên Node.
+   Đừng đưa mã có `document` hay `window` vào đây. */
+
+/** Bảng từ khoá mở đầu câu quyết định khoản là TRỪ (tiền ra).
+ *  Ghi không dấu vì câu nói được bỏ dấu trước khi đối chiếu — máy nhận dạng
+ *  đôi khi trả về chữ không dấu, đối chiếu không dấu thì trường hợp nào cũng khớp. */
+var TU_TRU = ['tieu', 'mua', 'tru', 'chi', 'tra', 'mat', 'dong', 'nop', 'het'];
+
+/** Bảng từ khoá mở đầu câu quyết định khoản là CỘNG (tiền vào). */
+var TU_CONG = ['nhan', 'cong', 'thu', 'duoc', 'them', 'luong', 'thuong', 'ban'];
+
+/** Cụm hai từ phải thử khớp TRƯỚC các từ đơn, vì "đòi" một mình không có nghĩa
+ *  cộng tiền, phải đủ "đòi được" mới là tiền vào. */
+var CUM_CONG = ['doi duoc'];
+
+/** Chữ số tiếng Việt (đã bỏ dấu). "mot"=1 và "mot"(mốt)=1 trùng nhau nên chỉ cần
+ *  một dòng; "tu"(tư)=4 và "lam"(lăm)=5 là các biến thể khi đứng ở hàng đơn vị. */
+var CHU_SO = {
+  khong: 0, mot: 1, hai: 2, ba: 3, bon: 4, tu: 4,
+  nam: 5, lam: 5, sau: 6, bay: 7, tam: 8, chin: 9
+};
+
+/** Đơn vị lớn và hệ số nhân. "k" và "tr" là dạng viết tắt người ta hay gõ. */
+var DON_VI_LON = {
+  nghin: 1e3, ngan: 1e3, k: 1e3,
+  trieu: 1e6, tr: 1e6,
+  ty: 1e9, ti: 1e9
+};
+
+/**
+ * Bỏ dấu tiếng Việt và hạ về chữ thường.
+ * @param {string} s chuỗi bất kỳ
+ * @returns {string} chuỗi chỉ còn chữ cái Latin không dấu, đã hạ chữ thường
+ *
+ * Dùng chuẩn hoá NFD tách nguyên âm khỏi dấu thanh rồi xoá dải dấu kết hợp
+ * U+0300–U+036F. Chữ "đ" không tách được bằng NFD nên phải đổi tay.
+ * Cảnh báo đã ghi trong docs/tien-do.md: sau khi bỏ dấu thì "mười" và "mươi"
+ * đều thành "muoi", phải phân biệt bằng vị trí chứ không bằng mặt chữ.
+ */
+function boDau(s) {
+  return String(s == null ? '' : s)
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/đ/g, 'd').replace(/Đ/g, 'D')
+    .toLowerCase();
+}
+
+/**
+ * Định dạng số nguyên đồng theo kiểu Việt Nam: 1250000 -> "1.250.000 đ".
+ * @param {number} n số nguyên đồng (âm thì có dấu trừ đứng trước)
+ * @param {boolean} [khongDonVi] true thì không gắn chữ " đ" ở đuôi
+ * @returns {string}
+ *
+ * Tự chèn dấu chấm chứ không dùng toLocaleString, vì một số bản Node dựng thiếu
+ * ICU sẽ trả về "1,250,000" theo kiểu Mỹ và bộ thử sẽ đỏ oan.
+ */
+function dinhDangTien(n, khongDonVi) {
+  var am = n < 0;
+  var chu = String(Math.abs(Math.round(n)));
+  var ra = '';
+  for (var i = 0; i < chu.length; i++) {
+    if (i > 0 && (chu.length - i) % 3 === 0) ra += '.';
+    ra += chu[i];
+  }
+  return (am ? '-' : '') + ra + (khongDonVi ? '' : ' đ');
+}
+
+/**
+ * Chuẩn hoá phần chữ chứa số tiền trước khi đưa vào docSoTien.
+ * @param {string} cau mẩu chữ thô
+ * @returns {string} chuỗi đã bỏ dấu, gộp số và dọn khoảng trắng
+ *
+ * Ba việc phải làm ĐÚNG THỨ TỰ này, nếu đảo là hỏng:
+ * 1. Gộp dấu chấm phân cách nghìn: "1.250.000" -> "1250000".
+ * 2. Dấu chấm thập phân còn sót ("1.25 trieu") đổi sang dấu phẩy, để dấu chấm
+ *    trong chuỗi số không còn nghĩa nào khác.
+ * 3. Tách chữ viết tắt dính vào số: "100k" -> "100 k", "1tr2" -> "1 tr 2".
+ *
+ * Hàm này CHỈ chạy trên đoạn số tiền, không chạy trên cả câu. Lý do: nó bỏ dấu
+ * tiếng Việt, mà phần lý do thì phải giữ nguyên dấu để hiện lên cho người đọc.
+ */
+function chuanHoaCau(cau) {
+  var s = boDau(cau).replace(/\s+/g, ' ').trim();
+  // 1. gộp dấu chấm phân cách nghìn, lặp để bắt hết các cụm liên tiếp
+  var truoc;
+  do { truoc = s; s = s.replace(/(\d)\.(\d{3})(?!\d)/g, '$1$2'); } while (s !== truoc);
+  // 2. dấu chấm thập phân còn sót -> dấu phẩy
+  s = s.replace(/(\d)\.(\d)/g, '$1,$2');
+  // 3. tách viết tắt dính số theo cả hai phía
+  s = s.replace(/(\d)\s*(nghin|ngan|trieu|tr|ty|ti|k)(?![a-z])/g, '$1 $2 ');
+  s = s.replace(/(nghin|ngan|trieu|tr|ty|ti|k)\s*(\d)/g, '$1 $2');
+  return s.replace(/\s+/g, ' ').trim();
+}
+
+/**
+ * Đọc số tiền từ một mẩu chuỗi, hiểu cả chữ tiếng Việt lẫn chữ số.
+ * @param {string} mau mẩu chuỗi đã qua chuanHoaCau (không dấu, số đã gộp)
+ * @returns {number|null} số nguyên đồng, hoặc null nếu không thấy số nào
+ *
+ * Máy trạng thái duyệt trái sang phải, giữ ba biến:
+ *   tong — phần đã chốt bởi các đơn vị lớn (nghìn/triệu/tỷ)
+ *   cum  — cụm đang dựng, nhỏ hơn một đơn vị lớn ("hai tram nam muoi" -> 250)
+ *   so   — chữ số vừa đọc, chưa biết nó thuộc hàng nào nên còn treo đấy
+ *
+ * Các quy tắc riêng của tiếng Việt (căn cứ đầy đủ ở docs/tien-do.md):
+ * - "muoi" đứng ngay sau một chữ số là "mươi" (nhân 10 số đứng trước);
+ *   đứng đầu cụm là "mười" (bằng 10). Tiếng Việt không có "hai mười" nên
+ *   phân biệt bằng vị trí là đủ và không nhập nhằng.
+ * - "linh"/"le" báo rằng chữ số theo sau thuộc hàng đơn vị: "mot tram le nam"=105.
+ *   Thiếu chữ đệm đó thì chữ số lẻ sau "tram" là hàng chục: "mot tram nam"=150.
+ * - "ruoi" cộng NỬA CỦA ĐƠN VỊ VỪA NÓI, không phải nửa của cả số:
+ *   "hai tram ruoi nghin" = (200+50)*1000 = 250.000; "mot trieu ruoi" = 1.500.000.
+ * - Chữ số trần đứng sau đơn vị lớn là phần lẻ của chính đơn vị đó, bậc do số
+ *   chữ số quyết định: "1tr2"=1.200.000, "1tr25"=1.250.000, "1 trieu 250"=1.250.000.
+ *   Cùng công thức: phần × 10^(mũ đơn vị − số chữ số).
+ */
+function docSoTien(mau) {
+  var tu = String(mau == null ? '' : mau).replace(/,(\d)/g, '.$1').split(/[^a-z0-9.]+/);
+  var tong = 0, cum = 0, so = null, thay = false;
+  var donViCuoi = 0;      // hệ số của đơn vị vừa xử lý, để "ruoi" biết lấy nửa của cái gì
+  var noiCuoi = '';       // 'cum' hay 'tong': đơn vị đó vừa cộng vào đâu
+  var coLinh = false;     // đã gặp "linh"/"le" trong cụm hiện tại chưa
+  var soLaChuSo = false;  // biến `so` đang treo là chữ số (5) hay chữ (nam)
+
+  /** Chốt cụm đang dựng lại thành một con số, có xử lý luật "tram" nói tắt. */
+  function chotCum() {
+    var le = so === null ? 0 : so;
+    // "mot tram tu" = 140: chữ số lẻ ngay sau "tram" mà không có "linh/le" là hàng chục
+    if (so !== null && !coLinh && donViCuoi === 100 && so < 10) le = so * 10;
+    return cum + le;
+  }
+
+  for (var i = 0; i < tu.length; i++) {
+    var t = tu[i];
+    if (!t) continue;
+
+    // --- chữ số viết bằng số ---
+    if (/^\d+(\.\d+)?$/.test(t)) {
+      if (so !== null) cum += so;
+      so = parseFloat(t);
+      soLaChuSo = true;
+      thay = true;
+      continue;
+    }
+
+    // --- đơn vị lớn: chốt cụm rồi nhân ---
+    if (Object.prototype.hasOwnProperty.call(DON_VI_LON, t)) {
+      var he = DON_VI_LON[t];
+      var phan = chotCum();
+      if (phan === 0) phan = 1;           // "nghin" đứng một mình hiểu là 1 nghìn
+      tong += phan * he;
+      cum = 0; so = null; coLinh = false; soLaChuSo = false;
+      donViCuoi = he; noiCuoi = 'tong';
+      thay = true;
+      continue;
+    }
+
+    // --- "tram" ---
+    if (t === 'tram') {
+      cum += (so === null ? 1 : so) * 100;
+      so = null; soLaChuSo = false; coLinh = false;
+      donViCuoi = 100; noiCuoi = 'cum';
+      thay = true;
+      continue;
+    }
+
+    // --- "muoi": mười hay mươi tuỳ vị trí ---
+    if (t === 'muoi') {
+      if (so !== null) cum += so * 10;    // "hai muoi" = 20
+      else cum += 10;                     // "muoi lam" = 15
+      so = null; soLaChuSo = false; coLinh = false;
+      donViCuoi = 10; noiCuoi = 'cum';
+      thay = true;
+      continue;
+    }
+
+    // --- chữ đệm hàng đơn vị ---
+    if (t === 'linh' || t === 'le') {
+      if (so !== null) { cum += so; so = null; soLaChuSo = false; }
+      coLinh = true;
+      continue;
+    }
+
+    // --- "ruoi": nửa của đơn vị vừa nói ---
+    if (t === 'ruoi') {
+      if (donViCuoi > 0 && so === null) {
+        if (noiCuoi === 'cum') cum += donViCuoi / 2;
+        else tong += donViCuoi / 2;
+      } else if (so !== null) {
+        cum += so + 0.5;                  // "hai ruoi trieu" = 2,5 triệu
+        so = null; soLaChuSo = false;
+      }
+      thay = true;
+      continue;
+    }
+
+    // --- chữ số viết bằng chữ ---
+    if (Object.prototype.hasOwnProperty.call(CHU_SO, t)) {
+      if (so !== null) cum += so;
+      so = CHU_SO[t];
+      soLaChuSo = false;
+      thay = true;
+      continue;
+    }
+
+    // gặp từ lạ thì dừng: phần còn lại không còn là số tiền nữa
+    break;
+  }
+
+  if (!thay) return null;
+
+  // Chữ số treo ở cuối, ngay sau một đơn vị lớn, là phần lẻ của đơn vị đó:
+  // "1 trieu 250" -> 250 x 10^(6-3) = 250.000
+  if (so !== null && noiCuoi === 'tong' && donViCuoi >= 1000 && cum === 0) {
+    var chuSoCuaSo = String(Math.round(so)).length;
+    var muDonVi = Math.round(Math.log(donViCuoi) / Math.LN10);
+    if (chuSoCuaSo < muDonVi) {
+      tong += so * Math.pow(10, muDonVi - chuSoCuaSo);
+      so = null;
+    }
+  }
+
+  var ket = tong + chotCum();
+  return ket > 0 ? Math.round(ket) : null;
+}
+
+/**
+ * Một từ có thuộc từ vựng số tiền không.
+ * @param {string} tu một từ lấy từ câu gốc, còn nguyên dấu và dấu câu
+ * @returns {boolean}
+ *
+ * Dùng để tìm ranh giới giữa số tiền và lý do khi câu thiếu chữ "lý do".
+ * Chuẩn hoá từ đó rồi soi từng mẩu con, vì một từ dính như "1tr2" sau chuẩn hoá
+ * thành ba mẩu "1 tr 2" mà cả ba đều là số.
+ */
+function laTuSo(tu) {
+  var s = chuanHoaCau(String(tu).replace(/[,;:!?"'()]/g, ''));
+  if (!s) return false;
+  var mau = s.split(' ');
+  for (var i = 0; i < mau.length; i++) {
+    var t = mau[i];
+    if (!t) continue;
+    if (/^\d+([.,]\d+)?$/.test(t)) continue;
+    if (Object.prototype.hasOwnProperty.call(CHU_SO, t)) continue;
+    if (Object.prototype.hasOwnProperty.call(DON_VI_LON, t)) continue;
+    if (t === 'tram' || t === 'muoi' || t === 'linh' || t === 'le' || t === 'ruoi') continue;
+    return false;
+  }
+  return true;
+}
+
+/**
+ * Tách một mệnh đề thành một khoản tiền.
+ * @param {string} manh mệnh đề NGUYÊN VĂN, còn nguyên dấu tiếng Việt
+ * @returns {{loai:string, soTien:number|null, lyDo:string, nguyenVan:string}}
+ *          soTien là null khi không tách được số — khi đó KHÔNG được lưu, phải
+ *          dựng thẻ nháp cho người dùng sửa tay rồi mới xác nhận.
+ *
+ * Cách làm: dựng SONG SONG hai mảng từ — `tuGoc` giữ nguyên dấu, `tuKhong` là
+ * bản bỏ dấu của đúng từng từ ấy. Mọi phép so khớp (động từ mở đầu, chỗ có chữ
+ * "lý do", ranh giới số tiền) làm trên `tuKhong` nên chịu được cả khi máy nhận
+ * dạng trả về chữ không dấu; còn lý do thì ghép lại từ `tuGoc` nên hiện ra vẫn
+ * đủ dấu. Bỏ dấu theo từng từ thì số phần tử hai mảng luôn bằng nhau, chỉ số
+ * dùng chung được.
+ *
+ * Quy tắc loại khoản (căn cứ đầy đủ ở docs/tien-do.md):
+ * - TRỪ khi mở đầu bằng: tiêu, mua, trừ, chi, trả, mất, đóng, nộp, hết.
+ * - CỘNG khi mở đầu bằng: nhận, cộng, thu, được, thêm, lương, thưởng, bán,
+ *   đòi được. Cụm hai từ "đòi được" phải thử TRƯỚC các từ đơn, vì "đòi" đứng
+ *   một mình không có nghĩa tiền vào.
+ * - Không khớp từ nào thì mặc định TRỪ, vì phần lớn câu ghi trong ngày là tiêu
+ *   tiền nên đoán trừ sai ít hơn đoán cộng.
+ */
+function tachMotKhoan(manh) {
+  var goc = String(manh == null ? '' : manh).trim();
+  var tuGoc = goc.split(/\s+/).filter(function (t) { return t !== ''; });
+  var tuKhong = tuGoc.map(function (t) {
+    return boDau(t).replace(/[,;:!?"'()]/g, '');
+  });
+
+  // --- loại khoản: cụm hai từ trước, rồi mới tới từ đơn ---
+  var loai = 'tru', batDau = 0;
+  var haiTu = (tuKhong[0] || '') + ' ' + (tuKhong[1] || '');
+  if (CUM_CONG.indexOf(haiTu) >= 0) {
+    loai = 'cong'; batDau = 2;
+  } else if (TU_CONG.indexOf(tuKhong[0]) >= 0) {
+    loai = 'cong'; batDau = 1;
+  } else if (TU_TRU.indexOf(tuKhong[0]) >= 0) {
+    loai = 'tru'; batDau = 1;
+  }
+
+  // --- chỗ có chữ "lý do" / "lí do" ---
+  var mocLyDo = -1;
+  for (var i = batDau; i < tuKhong.length - 1; i++) {
+    if ((tuKhong[i] === 'ly' || tuKhong[i] === 'li') && tuKhong[i + 1] === 'do') {
+      mocLyDo = i; break;
+    }
+  }
+
+  // --- ranh giới số tiền ---
+  var hetTien;
+  if (mocLyDo >= 0) {
+    hetTien = mocLyDo;
+  } else {
+    // Thiếu chữ "lý do": số tiền chạy tới từ đầu tiên không thuộc từ vựng số,
+    // toàn bộ phần còn lại từ đó trở đi là lý do.
+    hetTien = batDau;
+    while (hetTien < tuGoc.length && laTuSo(tuGoc[hetTien])) hetTien++;
+  }
+
+  var phanTien = tuGoc.slice(batDau, hetTien).join(' ');
+  var tien = docSoTien(chuanHoaCau(phanTien));
+  var lyDo = tuGoc.slice(mocLyDo >= 0 ? mocLyDo + 2 : hetTien).join(' ');
+
+  return {
+    loai: loai,
+    soTien: tien,
+    lyDo: lyDo.replace(/^[\s,.;:-]+/, '').replace(/[\s,.;:-]+$/, '').trim(),
+    nguyenVan: goc
+  };
+}
+
+/**
+ * Tách trọn một lần nói thành danh sách khoản.
+ * @param {string} cau nguyên văn câu nói
+ * @returns {Array<{loai:string, soTien:number|null, lyDo:string, nguyenVan:string}>}
+ *
+ * Nhiều khoản trong một lần nói thì ngăn bởi dấu chấm. Nhưng dấu chấm cũng là
+ * dấu phân cách nghìn của tiếng Việt, nên chỉ cắt ở dấu chấm KHÔNG nằm lọt giữa
+ * hai chữ số — nhờ vậy "1.250.000" vẫn nguyên vẹn thay vì bị xé làm ba khoản.
+ * Mỗi mệnh đề giữ nguyên dấu để làm `nguyenVan` hiện kèm bản ghi khi đối chiếu.
+ */
+function tachCauNoi(cau) {
+  var manh = String(cau == null ? '' : cau).split(/(?<!\d)\.|\.(?!\d)/);
+  var ra = [];
+  for (var i = 0; i < manh.length; i++) {
+    var m = manh[i].trim();
+    if (!m) continue;
+    if (!boDau(m).replace(/[^a-z0-9]/g, '')) continue;   // mẩu chỉ toàn dấu câu
+    ra.push(tachMotKhoan(m));
+  }
+  return ra;
+}
+
+/**
+ * Mốc đầu của một khoảng thời gian, tính từ một thời điểm cho trước.
+ * @param {string} moc 'ngay' | 'tuan' | 'thang' | 'nam'
+ * @param {Date} [bayGio] thời điểm gốc, mặc định là lúc gọi
+ * @returns {Date} 0 giờ 0 phút của đầu khoảng
+ *
+ * Tuần bắt đầu từ thứ Hai theo lịch Việt Nam, nên Chủ nhật (getDay()===0) phải
+ * lùi 6 ngày chứ không phải 0 ngày.
+ */
+function mocDau(moc, bayGio) {
+  var d = bayGio ? new Date(bayGio.getTime()) : new Date();
+  d.setHours(0, 0, 0, 0);
+  if (moc === 'tuan') {
+    var thu = d.getDay();
+    d.setDate(d.getDate() - (thu === 0 ? 6 : thu - 1));
+  } else if (moc === 'thang') {
+    d.setDate(1);
+  } else if (moc === 'nam') {
+    d.setMonth(0, 1);
+  }
+  return d;
+}
+
+/**
+ * Cộng dồn một danh sách khoản trong khoảng thời gian đã chọn.
+ * @param {Array} ds danh sách khoản
+ * @param {string} moc 'ngay' | 'tuan' | 'thang' | 'nam'
+ * @param {Date} [bayGio] thời điểm gốc để tính mốc
+ * @returns {{thu:number, chi:number, conLai:number, ds:Array}}
+ *
+ * Cộng bằng số nguyên đồng nên không có sai số. conLai = thu − chi, có thể âm.
+ */
+function congDon(ds, moc, bayGio) {
+  var tu = mocDau(moc, bayGio).getTime();
+  var thu = 0, chi = 0, trong = [];
+  for (var i = 0; i < ds.length; i++) {
+    var k = ds[i];
+    if (new Date(k.luc).getTime() < tu) continue;
+    trong.push(k);
+    if (k.loai === 'cong') thu += k.soTien; else chi += k.soTien;
+  }
+  return { thu: thu, chi: chi, conLai: thu - chi, ds: trong };
+}
+
+/**
+ * Số dư của toàn bộ sổ, không giới hạn thời gian.
+ * @param {Array} ds danh sách khoản
+ * @returns {number} số nguyên đồng, âm nếu tiêu nhiều hơn thu
+ */
+function tinhSoDu(ds) {
+  var t = 0;
+  for (var i = 0; i < ds.length; i++) {
+    t += ds[i].loai === 'cong' ? ds[i].soTien : -ds[i].soTien;
+  }
+  return t;
+}
+
+/* ==== KET THUC BO TACH ==== */
+
+/* ---------------------------------------------------------------
+   Từ đây trở xuống là phần đụng DOM, IndexedDB và micro.
+   --------------------------------------------------------------- */
+
+var TEN_KHO = 'so-tieu-tien';
+var TEN_NGAN = 'khoan';
+var NGAN_SAO_LUU = 'sao-luu';   // các bản sao lưu tự động, khoá là mốc ms
+var NGAN_CAI_DAT = 'cai-dat';   // cấu hình app, mỗi dòng một khoá
+var khoanTrongMay = [];      // bản sao trong bộ nhớ, luôn xếp mới nhất trước
+var trangDangXem = 'tong';
+var mocDangChon = { tong: 'thang', chi: 'thang', thu: 'thang' };
+var maCuoi = 0;
+var dangSuaId = null;        // id khoản đang mở trong hộp sửa, null là thêm mới
+var loaiDangChon = 'tru';
+var nguyenVanNhap = '';
+var boNghe = null;
+var dangNghe = false;
+
+/**
+ * Mở IndexedDB, tạo đủ ba ngăn nếu chưa có.
+ * @returns {Promise<IDBDatabase>}
+ * @throws Từ chối lời hứa khi trình duyệt chặn IndexedDB (chế độ riêng tư).
+ *
+ * Kho lên phiên bản 2 khi thêm chức năng sao lưu tự động. Máy nào đang giữ kho
+ * phiên bản 1 (chỉ có ngăn `khoan`) thì onupgradeneeded chạy và bù thêm hai ngăn
+ * mới, dữ liệu cũ giữ nguyên — không được xoá ngăn `khoan` trong đây.
+ */
+function moKho() {
+  return new Promise(function (nhan, tuChoi) {
+    var yc = indexedDB.open(TEN_KHO, 2);
+    yc.onupgradeneeded = function () {
+      var db = yc.result;
+      if (!db.objectStoreNames.contains(TEN_NGAN)) {
+        db.createObjectStore(TEN_NGAN, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(NGAN_SAO_LUU)) {
+        db.createObjectStore(NGAN_SAO_LUU, { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains(NGAN_CAI_DAT)) {
+        db.createObjectStore(NGAN_CAI_DAT, { keyPath: 'khoa' });
+      }
+    };
+    yc.onsuccess = function () { nhan(yc.result); };
+    yc.onerror = function () { tuChoi(yc.error); };
+  });
+}
+
+/**
+ * Đọc toàn bộ khoản từ IndexedDB, xếp mới nhất trước.
+ * @returns {Promise<Array>} danh sách khoản, mảng rỗng nếu kho lỗi
+ */
+function docHetKhoan() {
+  return moKho().then(function (db) {
+    return new Promise(function (nhan, tuChoi) {
+      var yc = db.transaction(TEN_NGAN, 'readonly').objectStore(TEN_NGAN).getAll();
+      yc.onsuccess = function () {
+        var ds = yc.result || [];
+        ds.sort(function (a, b) { return new Date(b.luc) - new Date(a.luc); });
+        nhan(ds);
+      };
+      yc.onerror = function () { tuChoi(yc.error); };
+    });
+  }).catch(function () { return []; });
+}
+
+/**
+ * Ghi (thêm mới hoặc đè) một khoản vào IndexedDB.
+ * @param {object} k khoản đúng định dạng đã chốt trong docs/tien-do.md
+ * @returns {Promise<void>}
+ */
+function luuKhoan(k) {
+  return moKho().then(function (db) {
+    return new Promise(function (nhan, tuChoi) {
+      var gd = db.transaction(TEN_NGAN, 'readwrite');
+      gd.objectStore(TEN_NGAN).put(k);
+      gd.oncomplete = function () { nhan(); };
+      gd.onerror = function () { tuChoi(gd.error); };
+    });
+  });
+}
+
+/**
+ * Xoá một khoản khỏi IndexedDB.
+ * @param {number} id khoá của khoản
+ * @returns {Promise<void>}
+ */
+function xoaKhoanTrongKho(id) {
+  return moKho().then(function (db) {
+    return new Promise(function (nhan, tuChoi) {
+      var gd = db.transaction(TEN_NGAN, 'readwrite');
+      gd.objectStore(TEN_NGAN).delete(id);
+      gd.oncomplete = function () { nhan(); };
+      gd.onerror = function () { tuChoi(gd.error); };
+    });
+  });
+}
+
+/**
+ * Sinh mã khoản mới, bảo đảm không trùng.
+ * @returns {number} mốc mili giây, tăng thêm 1 nếu gọi nhiều lần trong cùng mili giây
+ *
+ * Cần thiết vì một lần nói có thể sinh nhiều khoản cùng lúc, mà Date.now()
+ * trong cùng vòng lặp trả về đúng một giá trị.
+ */
+function sinhMa() {
+  var m = Date.now();
+  if (m <= maCuoi) m = maCuoi + 1;
+  maCuoi = m;
+  return m;
+}
+
+/**
+ * Nhận biết app đang chạy trong khung nhúng (iframe) của trình xem artifact.
+ * @returns {boolean}
+ *
+ * Trình xem chặn mọi lệnh tải file về, nên khi nhúng thì phải giấu nút sao lưu
+ * đi thay vì để người dùng bấm vào một nút không bao giờ chạy. Bài học lấy
+ * nguyên từ dự án nhat-ky-nho.
+ */
+function chayTrongKhungNhung() {
+  try { return window.self !== window.top; } catch (e) { return true; }
+}
+
+/**
+ * Hiện một lời nhắn ngắn rồi tự tắt.
+ * @param {string} chu nội dung nhắn
+ * @param {number} [giay] số giây hiện, mặc định 2,6
+ */
+function nhanNgan(chu, giay) {
+  var o = document.getElementById('nhan-thoang');
+  o.textContent = chu;
+  o.classList.add('hien');
+  clearTimeout(nhanNgan._hen);
+  nhanNgan._hen = setTimeout(function () { o.classList.remove('hien'); }, (giay || 2.6) * 1000);
+}
+
+/**
+ * Đổi Date sang chuỗi hợp với ô input datetime-local (giờ địa phương).
+ * @param {Date} d
+ * @returns {string} dạng "yyyy-MM-ddTHH:mm"
+ */
+function choODatetime(d) {
+  function hai(n) { return (n < 10 ? '0' : '') + n; }
+  return d.getFullYear() + '-' + hai(d.getMonth() + 1) + '-' + hai(d.getDate())
+    + 'T' + hai(d.getHours()) + ':' + hai(d.getMinutes());
+}
+
+/**
+ * Ngày dạng "dd/MM/yyyy" để nhóm và hiển thị.
+ * @param {Date|string} luc
+ * @returns {string}
+ */
+function ngayVN(luc) {
+  var d = new Date(luc);
+  function hai(n) { return (n < 10 ? '0' : '') + n; }
+  return hai(d.getDate()) + '/' + hai(d.getMonth() + 1) + '/' + d.getFullYear();
+}
+
+/**
+ * Giờ phút dạng "HH:mm".
+ * @param {Date|string} luc
+ * @returns {string}
+ */
+function gioVN(luc) {
+  var d = new Date(luc);
+  function hai(n) { return (n < 10 ? '0' : '') + n; }
+  return hai(d.getHours()) + ':' + hai(d.getMinutes());
+}
+
+/** Tên gọi thân mật của từng mốc, dùng trong câu "Đã tiêu trong tháng". */
+var TEN_MOC = { ngay: 'trong ngày', tuan: 'trong tuần', thang: 'trong tháng', nam: 'trong năm' };
+
+/**
+ * Dựng dãy chip chọn mốc thời gian cho một trang.
+ * @param {string} oId id của khung chứa chip
+ * @param {string} trang tên trang ('tong' | 'chi' | 'thu')
+ */
+function veChip(oId, trang) {
+  var khung = document.getElementById(oId);
+  khung.innerHTML = '';
+  [['ngay', 'Ngày'], ['tuan', 'Tuần'], ['thang', 'Tháng'], ['nam', 'Năm']].forEach(function (c) {
+    var n = document.createElement('button');
+    n.type = 'button';
+    n.className = 'chip' + (mocDangChon[trang] === c[0] ? ' chon' : '');
+    n.textContent = c[1];
+    n.setAttribute('data-moc', c[0]);
+    n.onclick = function () { mocDangChon[trang] = c[0]; veLai(); };
+    khung.appendChild(n);
+  });
+}
+
+/**
+ * Dựng thẻ HTML cho một khoản trong danh sách.
+ * @param {object} k khoản
+ * @returns {HTMLElement}
+ *
+ * Luôn hiện nguyên văn câu đã nghe bên dưới, để khi máy tách sai thì người dùng
+ * nhìn ra ngay mà sửa — đây là yêu cầu bắt buộc, đừng bỏ đi cho gọn.
+ */
+function veKhoan(k) {
+  var o = document.createElement('div');
+  o.className = 'khoan ' + k.loai;
+  o.setAttribute('data-id', k.id);
+
+  var dau = document.createElement('div');
+  dau.className = 'dau';
+  dau.textContent = k.loai === 'cong' ? '+' : '−';
+
+  var giua = document.createElement('div');
+  giua.className = 'giua';
+  var ld = document.createElement('div');
+  ld.className = 'ly-do';
+  ld.textContent = k.lyDo || '(chưa ghi lý do)';
+  var luc = document.createElement('div');
+  luc.className = 'luc';
+  luc.textContent = gioVN(k.luc) + ' · ' + ngayVN(k.luc);
+  giua.appendChild(ld);
+  giua.appendChild(luc);
+  if (k.nguyenVan) {
+    var goc = document.createElement('div');
+    goc.className = 'goc';
+    goc.textContent = '“' + k.nguyenVan + '”';
+    giua.appendChild(goc);
+  }
+
+  var phai = document.createElement('div');
+  phai.className = 'phai';
+  var tien = document.createElement('div');
+  tien.className = 'tien';
+  tien.textContent = (k.loai === 'cong' ? '+' : '−') + dinhDangTien(k.soTien);
+  var sua = document.createElement('button');
+  sua.type = 'button';
+  sua.className = 'nut-nho';
+  sua.textContent = 'Sửa';
+  sua.onclick = function () { moHopSua(k); };
+  phai.appendChild(tien);
+  phai.appendChild(sua);
+
+  o.appendChild(dau); o.appendChild(giua); o.appendChild(phai);
+  return o;
+}
+
+/**
+ * Đổ một danh sách khoản vào khung, có nhóm theo ngày.
+ * @param {string} oId id khung chứa
+ * @param {Array} ds danh sách khoản đã lọc, mới nhất trước
+ * @param {boolean} nhomTheoNgay true thì chèn dòng nhãn ngày kèm tổng cộng của ngày
+ */
+function doDanhSach(oId, ds, nhomTheoNgay) {
+  var khung = document.getElementById(oId);
+  khung.innerHTML = '';
+  if (!ds.length) {
+    var t = document.createElement('div');
+    t.className = 'trong';
+    t.textContent = 'Chưa có khoản nào trong mốc thời gian này.';
+    khung.appendChild(t);
+    return;
+  }
+  var ngayTruoc = '';
+  ds.forEach(function (k) {
+    if (nhomTheoNgay) {
+      var n = ngayVN(k.luc);
+      if (n !== ngayTruoc) {
+        ngayTruoc = n;
+        var cong = 0;
+        ds.forEach(function (x) { if (ngayVN(x.luc) === n) cong += x.soTien; });
+        var nhan = document.createElement('div');
+        nhan.className = 'nhan-ngay';
+        var trai = document.createElement('span');
+        trai.textContent = n;
+        var phai = document.createElement('span');
+        phai.className = 'cong';
+        phai.style.color = k.loai === 'cong' ? 'var(--green)' : 'var(--red)';
+        phai.textContent = dinhDangTien(cong);
+        nhan.appendChild(trai); nhan.appendChild(phai);
+        khung.appendChild(nhan);
+      }
+    }
+    khung.appendChild(veKhoan(k));
+  });
+}
+
+/**
+ * Vẽ lại toàn bộ màn hình theo dữ liệu đang có trong bộ nhớ.
+ *
+ * Gọi sau mọi thay đổi dữ liệu. Không tải lại trang, không đọc lại IndexedDB —
+ * `khoanTrongMay` mới là nguồn để vẽ, nên khoản vừa thêm hiện lên tức thì.
+ */
+function veLai() {
+  veChip('chip-tong', 'tong');
+  veChip('chip-chi', 'chi');
+  veChip('chip-thu', 'thu');
+
+  // --- Trang Tổng ---
+  var du = tinhSoDu(khoanTrongMay);
+  var oDu = document.getElementById('so-du');
+  oDu.textContent = dinhDangTien(du);
+  oDu.className = 'so ' + (du < 0 ? 'am' : 'duong');
+  document.getElementById('ghi-so-du').textContent = khoanTrongMay.length
+    ? khoanTrongMay.length + ' khoản đã ghi'
+    : 'Chưa có khoản nào';
+
+  var gTong = congDon(khoanTrongMay, mocDangChon.tong);
+  document.getElementById('tk-thu').textContent = dinhDangTien(gTong.thu);
+  document.getElementById('tk-chi').textContent = dinhDangTien(gTong.chi);
+  document.getElementById('tk-con').textContent = dinhDangTien(gTong.conLai);
+  doDanhSach('ds-tong', gTong.ds, true);
+
+  // --- Trang Tiền tiêu đi ---
+  var gChi = congDon(khoanTrongMay, mocDangChon.chi);
+  var chiRieng = gChi.ds.filter(function (k) { return k.loai === 'tru'; });
+  document.getElementById('ten-moc-chi').textContent = TEN_MOC[mocDangChon.chi];
+  document.getElementById('tong-chi').textContent = dinhDangTien(gChi.chi);
+  document.getElementById('ghi-chi').textContent = chiRieng.length
+    ? chiRieng.length + ' khoản' : 'Chưa có khoản nào';
+  doDanhSach('ds-chi', chiRieng, true);
+
+  // --- Trang Tiền kiếm về ---
+  var gThu = congDon(khoanTrongMay, mocDangChon.thu);
+  var thuRieng = gThu.ds.filter(function (k) { return k.loai === 'cong'; });
+  document.getElementById('ten-moc-thu').textContent = TEN_MOC[mocDangChon.thu];
+  document.getElementById('tong-thu').textContent = dinhDangTien(gThu.thu);
+  document.getElementById('ghi-thu').textContent = thuRieng.length
+    ? thuRieng.length + ' khoản' : 'Chưa có khoản nào';
+  doDanhSach('ds-thu', thuRieng, true);
+}
+
+/**
+ * Chuyển sang một trong ba trang.
+ * @param {string} ten 'tong' | 'chi' | 'thu'
+ */
+function moTrang(ten) {
+  trangDangXem = ten;
+  ['tong', 'chi', 'thu'].forEach(function (t) {
+    document.getElementById('trang-' + t).hidden = (t !== ten);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('.tab[data-trang]'), function (n) {
+    n.classList.toggle('chon', n.getAttribute('data-trang') === ten);
+  });
+  document.getElementById('phu-dau').textContent =
+    ten === 'tong' ? 'Tổng quan' : (ten === 'chi' ? 'Tiền tiêu đi' : 'Tiền kiếm về');
+  window.scrollTo(0, 0);
+}
+
+/**
+ * Ghi một loạt khoản vừa tách được vào sổ.
+ * @param {Array} dsTach kết quả của tachCauNoi
+ * @param {string} nhap 'noi' hay 'tay'
+ * @returns {Promise<void>}
+ *
+ * Khoản nào không tách được số tiền thì KHÔNG lưu — mở hộp sửa dạng nháp để
+ * người dùng điền tay rồi mới xác nhận. Đây là ràng buộc cứng: thà bắt gõ thêm
+ * còn hơn ghi một con số bịa vào sổ tiền.
+ */
+function ghiCacKhoan(dsTach, nhap) {
+  var duoc = [], nhap_nhay = null;
+  dsTach.forEach(function (t) {
+    if (t.soTien === null) { if (!nhap_nhay) nhap_nhay = t; return; }
+    duoc.push({
+      id: sinhMa(),
+      loai: t.loai,
+      soTien: t.soTien,
+      lyDo: t.lyDo,
+      luc: new Date().toISOString(),
+      nguyenVan: t.nguyenVan,
+      nhap: nhap || 'noi'
+    });
+  });
+
+  var chuoi = Promise.resolve();
+  duoc.forEach(function (k) {
+    chuoi = chuoi.then(function () { return luuKhoan(k); }).then(function () {
+      khoanTrongMay.unshift(k);
+    });
+  });
+
+  return chuoi.then(function () {
+    if (duoc.length) {
+      veLai();
+      var tomTat = duoc.map(function (k) {
+        return (k.loai === 'cong' ? '+' : '−') + dinhDangTien(k.soTien);
+      }).join('  ');
+      nhanNgan('Đã ghi ' + duoc.length + ' khoản: ' + tomTat);
+    }
+    if (nhap_nhay) {
+      moHopNhap(nhap_nhay);
+      if (!duoc.length) nhanNgan('Không nghe ra số tiền — mời anh sửa tay', 3.4);
+    } else if (!duoc.length) {
+      nhanNgan('Chưa nghe được gì cả', 3);
+    }
+  });
+}
+
+/**
+ * Mở hộp sửa cho một khoản đã có trong sổ.
+ * @param {object} k khoản
+ */
+function moHopSua(k) {
+  dangSuaId = k.id;
+  loaiDangChon = k.loai;
+  nguyenVanNhap = k.nguyenVan || '';
+  document.getElementById('tua-sua').textContent = 'Sửa khoản';
+  document.getElementById('dan-sua').textContent = k.nguyenVan ? '“' + k.nguyenVan + '”' : '';
+  document.getElementById('bao-nhap').innerHTML = '';
+  document.getElementById('o-tien').value = dinhDangTien(k.soTien, true);
+  document.getElementById('o-ly-do').value = k.lyDo || '';
+  document.getElementById('o-luc').value = choODatetime(new Date(k.luc));
+  document.getElementById('hang-xoa').style.display = '';
+  doiNutLoai();
+  document.getElementById('che-sua').classList.add('hien');
+}
+
+/**
+ * Mở hộp sửa dạng THẺ NHÁP: câu nói không tách được số tiền.
+ * @param {object} t một phần tử của tachCauNoi có soTien === null
+ *
+ * Thẻ nháp chưa nằm trong sổ. Bấm Lưu mới sinh khoản thật, bấm Bỏ qua thì mất
+ * hẳn — đúng như yêu cầu "không được lưu bừa".
+ */
+function moHopNhap(t) {
+  dangSuaId = null;
+  loaiDangChon = t.loai;
+  nguyenVanNhap = t.nguyenVan || '';
+  document.getElementById('tua-sua').textContent = 'Khoản nháp — chưa lưu';
+  document.getElementById('dan-sua').textContent = t.nguyenVan ? '“' + t.nguyenVan + '”' : '';
+  document.getElementById('bao-nhap').innerHTML =
+    '<div class="canh-bao">Không tách được số tiền từ câu này. Anh điền số rồi bấm Lưu, chưa điền thì chưa có gì vào sổ.</div>';
+  document.getElementById('o-tien').value = '';
+  document.getElementById('o-ly-do').value = t.lyDo || '';
+  document.getElementById('o-luc').value = choODatetime(new Date());
+  document.getElementById('hang-xoa').style.display = 'none';
+  doiNutLoai();
+  document.getElementById('che-sua').classList.add('hien');
+  setTimeout(function () { document.getElementById('o-tien').focus(); }, 120);
+}
+
+/** Tô lại hai nút chọn loại theo `loaiDangChon`. */
+function doiNutLoai() {
+  document.getElementById('chon-tru').className =
+    'nut-loai' + (loaiDangChon === 'tru' ? ' chon-tru' : '');
+  document.getElementById('chon-cong').className =
+    'nut-loai' + (loaiDangChon === 'cong' ? ' chon-cong' : '');
+}
+
+/**
+ * Đọc số tiền người dùng gõ tay trong hộp sửa.
+ * @param {string} chu nội dung ô nhập
+ * @returns {number|null} số nguyên đồng, null nếu không ra số dương
+ *
+ * Chấp nhận cả "1.250.000", "1250000", "1tr25" hay "một triệu hai trăm năm mươi
+ * nghìn" — dùng lại đúng bộ đọc số của phần giọng nói nên hai đường vào cho ra
+ * cùng một kết quả, không có chuyện gõ tay ra số khác nói miệng.
+ */
+function docTienGoTay(chu) {
+  var s = String(chu || '').trim();
+  if (!s) return null;
+  return docSoTien(chuanHoaCau(s));
+}
+
+/** Đóng mọi hộp thoại đang mở. */
+function dongHop() {
+  ['che-sua', 'che-go-tay', 'che-du-lieu'].forEach(function (id) {
+    document.getElementById(id).classList.remove('hien');
+  });
+}
+
+/**
+ * Lưu nội dung hộp sửa: cập nhật khoản cũ hoặc sinh khoản mới từ thẻ nháp.
+ * @returns {Promise<void>}
+ */
+function luuHopSua() {
+  var tien = docTienGoTay(document.getElementById('o-tien').value);
+  if (tien === null) { nhanNgan('Số tiền chưa hợp lệ'); return Promise.resolve(); }
+  var lucChu = document.getElementById('o-luc').value;
+  var luc = lucChu ? new Date(lucChu) : new Date();
+  var lyDo = document.getElementById('o-ly-do').value.trim();
+
+  if (dangSuaId !== null) {
+    var cu = null;
+    for (var i = 0; i < khoanTrongMay.length; i++) {
+      if (khoanTrongMay[i].id === dangSuaId) { cu = khoanTrongMay[i]; break; }
+    }
+    if (!cu) { dongHop(); return Promise.resolve(); }
+    cu.loai = loaiDangChon;
+    cu.soTien = tien;
+    cu.lyDo = lyDo;
+    cu.luc = luc.toISOString();
+    cu.nhap = 'tay';
+    return luuKhoan(cu).then(function () {
+      khoanTrongMay.sort(function (a, b) { return new Date(b.luc) - new Date(a.luc); });
+      dongHop(); veLai(); nhanNgan('Đã sửa xong');
+    });
+  }
+
+  var moi = {
+    id: sinhMa(), loai: loaiDangChon, soTien: tien, lyDo: lyDo,
+    luc: luc.toISOString(), nguyenVan: nguyenVanNhap, nhap: 'tay'
+  };
+  return luuKhoan(moi).then(function () {
+    khoanTrongMay.unshift(moi);
+    khoanTrongMay.sort(function (a, b) { return new Date(b.luc) - new Date(a.luc); });
+    dongHop(); veLai();
+    nhanNgan('Đã ghi ' + (moi.loai === 'cong' ? '+' : '−') + dinhDangTien(moi.soTien));
+  });
+}
+
+/**
+ * Bật bộ nghe của trình duyệt và ghi khoản khi nghe xong.
+ *
+ * Dùng Web Speech API với lang 'vi-VN'. Trình duyệt không có thì mở thẳng hộp
+ * gõ tay — không để màn hình chết đứng.
+ */
+function batNghe() {
+  var Bo = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Bo) {
+    nhanNgan('Máy này không nghe được, mời anh gõ tay', 3);
+    moHopGoTay();
+    return;
+  }
+  if (dangNghe) { dungNghe(); return; }
+
+  boNghe = new Bo();
+  boNghe.lang = 'vi-VN';
+  boNghe.interimResults = true;
+  boNghe.continuous = false;
+  boNghe.maxAlternatives = 1;
+
+  var cauCuoi = '';
+  var dai = document.getElementById('dai-nghe');
+  var chu = document.getElementById('chu-nghe');
+
+  boNghe.onstart = function () {
+    dangNghe = true;
+    document.getElementById('nut-ghi').classList.add('dang-nghe');
+    chu.textContent = '';
+    dai.classList.add('hien');
+  };
+  boNghe.onresult = function (sk) {
+    var tam = '';
+    for (var i = sk.resultIndex; i < sk.results.length; i++) {
+      var mau = sk.results[i][0].transcript;
+      if (sk.results[i].isFinal) cauCuoi += mau + ' '; else tam += mau;
+    }
+    chu.textContent = (cauCuoi + tam).trim();
+  };
+  boNghe.onerror = function (sk) {
+    nhanNgan(sk.error === 'not-allowed'
+      ? 'Chưa cho phép dùng micro' : 'Nghe lỗi: ' + sk.error, 3);
+  };
+  boNghe.onend = function () {
+    dangNghe = false;
+    document.getElementById('nut-ghi').classList.remove('dang-nghe');
+    dai.classList.remove('hien');
+    var cau = cauCuoi.trim();
+    if (cau) ghiCacKhoan(tachCauNoi(cau), 'noi');
+  };
+
+  try { boNghe.start(); } catch (e) { nhanNgan('Không bật được micro'); }
+}
+
+/** Dừng bộ nghe giữa chừng; sự kiện onend sẽ lo phần ghi sổ. */
+function dungNghe() {
+  if (boNghe) { try { boNghe.stop(); } catch (e) { /* đã dừng rồi */ } }
+}
+
+/** Mở hộp gõ nguyên câu, dùng khi máy không nghe được hoặc anh muốn gõ. */
+function moHopGoTay() {
+  document.getElementById('o-cau').value = '';
+  document.getElementById('che-go-tay').classList.add('hien');
+  setTimeout(function () { document.getElementById('o-cau').focus(); }, 120);
+}
+
+/**
+ * Xuất toàn bộ sổ ra file JSON để sao lưu.
+ *
+ * Trong khung nhúng thì trình xem chặn tải file, nên nút này đã bị giấu từ đầu.
+ */
+function xuatSaoLuu() {
+  var goi = {
+    ten: 'so-tieu-tien',
+    phienBan: 1,
+    xuatLuc: new Date().toISOString(),
+    khoan: khoanTrongMay
+  };
+  var mau = new Blob([JSON.stringify(goi, null, 2)], { type: 'application/json' });
+  var duong = URL.createObjectURL(mau);
+  var a = document.createElement('a');
+  a.href = duong;
+  a.download = 'so-tieu-tien-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(duong); }, 4000);
+  nhanNgan('Đã xuất file sao lưu');
+}
+
+/**
+ * Nạp lại sổ từ file sao lưu.
+ * @param {File} tep file JSON do xuatSaoLuu sinh ra
+ * @returns {Promise<void>}
+ *
+ * Nạp theo kiểu GỘP, chống trùng bằng chính `id`: nạp mấy lần cũng không sinh
+ * bản kép, và không xoá mất khoản đã ghi sau lần sao lưu đó.
+ */
+function napSaoLuu(tep) {
+  return tep.text().then(function (chu) {
+    var goi = JSON.parse(chu);
+    var ds = goi && goi.khoan ? goi.khoan : [];
+    if (!Array.isArray(ds)) throw new Error('file không đúng định dạng');
+    var daCo = {};
+    khoanTrongMay.forEach(function (k) { daCo[k.id] = true; });
+    var them = ds.filter(function (k) { return !daCo[k.id]; });
+    var chuoi = Promise.resolve();
+    them.forEach(function (k) {
+      chuoi = chuoi.then(function () { return luuKhoan(k); })
+        .then(function () { khoanTrongMay.push(k); });
+    });
+    return chuoi.then(function () {
+      khoanTrongMay.sort(function (a, b) { return new Date(b.luc) - new Date(a.luc); });
+      dongHop(); veLai();
+      nhanNgan('Đã nạp thêm ' + them.length + ' khoản');
+    });
+  }).catch(function () { nhanNgan('File sao lưu không đọc được', 3); });
+}
+
+/* ---------------------------------------------------------------
+   SAO LƯU TỰ ĐỘNG
+
+   Giới hạn phải biết trước khi đọc phần này: Safari trên iPhone KHÔNG cho web
+   app tự ghi file vào thư mục nào cả — không có File System Access API. Nên
+   "kho sao lưu" trên iPhone là một ngăn IndexedDB riêng (`sao-luu`), tách khỏi
+   ngăn dữ liệu chính, chứ không phải thư mục thật. Muốn đưa ra Tệp của iPhone
+   thì bắt buộc người dùng phải chạm một cái (bảng chia sẻ của iOS).
+
+   Trên Chrome/Edge máy tính thì có showDirectoryPicker, chọn thư mục một lần
+   rồi từ đó ghi thẳng ra thư mục thật được — đó là đường duy nhất "tự động lưu
+   ra folder" đúng nghĩa.
+   --------------------------------------------------------------- */
+
+/** Cấu hình mặc định khi máy chưa từng lưu cài đặt nào. */
+var CAI_DAT_MAC_DINH = {
+  tuDong: 'mo-app',    // 'tat' | 'mo-app' | '1h' | '6h' | '12h' | '24h'
+  giuToiDa: 30,        // giữ bao nhiêu bản gần nhất, quá thì dọn bản cũ
+  lanCuoi: '',         // ISO của lần sao lưu gần nhất
+  vanTayCuoi: ''       // dấu vân dữ liệu lúc đó, để khỏi sao lưu trùng
+};
+var caiDat = null;
+var thuMucSaoLuu = null;   // FileSystemDirectoryHandle, chỉ có trên máy tính
+var henKiemTra = null;
+
+/** Nhãn tiếng Việt của từng mức tự động, dùng khi hiện ra màn hình. */
+var TEN_TU_DONG = {
+  tat: 'Tắt', 'mo-app': 'Mỗi lần mở app',
+  '1h': 'Mỗi 1 giờ', '6h': 'Mỗi 6 giờ', '12h': 'Mỗi 12 giờ', '24h': 'Mỗi 24 giờ'
+};
+
+/** Số giờ giữa hai lần sao lưu định kỳ, theo từng mức. */
+var GIO_CUA_MUC = { '1h': 1, '6h': 6, '12h': 12, '24h': 24 };
+
+/**
+ * Đọc một dòng cấu hình khỏi ngăn `cai-dat`.
+ * @param {string} khoa tên dòng cấu hình
+ * @returns {Promise<*>} giá trị đã lưu, undefined nếu chưa có
+ */
+function docDongCaiDat(khoa) {
+  return moKho().then(function (db) {
+    return new Promise(function (nhan) {
+      var yc = db.transaction(NGAN_CAI_DAT, 'readonly').objectStore(NGAN_CAI_DAT).get(khoa);
+      yc.onsuccess = function () { nhan(yc.result ? yc.result.gia : undefined); };
+      yc.onerror = function () { nhan(undefined); };
+    });
+  }).catch(function () { return undefined; });
+}
+
+/**
+ * Ghi một dòng cấu hình vào ngăn `cai-dat`.
+ * @param {string} khoa tên dòng
+ * @param {*} gia giá trị (phải sao chép được theo chuẩn structured clone)
+ * @returns {Promise<void>}
+ */
+function ghiDongCaiDat(khoa, gia) {
+  return moKho().then(function (db) {
+    return new Promise(function (nhan, tuChoi) {
+      var gd = db.transaction(NGAN_CAI_DAT, 'readwrite');
+      gd.objectStore(NGAN_CAI_DAT).put({ khoa: khoa, gia: gia });
+      gd.oncomplete = function () { nhan(); };
+      gd.onerror = function () { tuChoi(gd.error); };
+    });
+  });
+}
+
+/**
+ * Nạp cấu hình vào biến `caiDat`, bù các trường thiếu bằng giá trị mặc định.
+ * @returns {Promise<object>}
+ */
+function napCaiDat() {
+  return docDongCaiDat('cauHinh').then(function (c) {
+    caiDat = {};
+    Object.keys(CAI_DAT_MAC_DINH).forEach(function (k) {
+      caiDat[k] = (c && c[k] !== undefined) ? c[k] : CAI_DAT_MAC_DINH[k];
+    });
+    return docDongCaiDat('thuMuc');
+  }).then(function (tm) {
+    thuMucSaoLuu = tm || null;
+    return caiDat;
+  });
+}
+
+/** Ghi biến `caiDat` xuống kho. @returns {Promise<void>} */
+function luuCaiDat() {
+  return ghiDongCaiDat('cauHinh', caiDat);
+}
+
+/**
+ * Gói toàn bộ sổ thành đối tượng đem đi sao lưu.
+ * @returns {object} đúng định dạng mà napSaoLuu đọc được
+ */
+function goiDuLieu() {
+  return {
+    ten: 'so-tieu-tien',
+    phienBan: 1,
+    xuatLuc: new Date().toISOString(),
+    khoan: khoanTrongMay
+  };
+}
+
+/**
+ * Dấu vân của dữ liệu hiện tại.
+ * @param {Array} ds danh sách khoản
+ * @returns {string} chuỗi đổi khi và chỉ khi dữ liệu đổi
+ *
+ * Dùng để bỏ qua lần sao lưu nào mà sổ chưa hề thay đổi — nếu không, mở app
+ * mười lần trong một buổi sẽ đẻ ra mười bản giống hệt nhau, đầy kho mà vô ích.
+ * Ghép id, loại và số tiền là đủ nhận ra mọi thay đổi thật (thêm, xoá, sửa).
+ */
+function vanTay(ds) {
+  var t = ds.length + '|';
+  for (var i = 0; i < ds.length; i++) {
+    t += ds[i].id + ':' + ds[i].loai + ':' + ds[i].soTien + ':' + ds[i].luc + ';';
+  }
+  return t;
+}
+
+/**
+ * Tên tệp của một bản sao lưu.
+ * @param {object} ban bản sao lưu
+ * @returns {string} dạng "so-tieu-tien-2026-09-06-2341.json"
+ */
+function tenTepSaoLuu(ban) {
+  var d = new Date(ban.luc);
+  function hai(n) { return (n < 10 ? '0' : '') + n; }
+  return 'so-tieu-tien-' + d.getFullYear() + '-' + hai(d.getMonth() + 1) + '-'
+    + hai(d.getDate()) + '-' + hai(d.getHours()) + hai(d.getMinutes()) + '.json';
+}
+
+/** Ghi một bản sao lưu vào ngăn `sao-luu`. @returns {Promise<void>} */
+function luuBanVaoKho(ban) {
+  return moKho().then(function (db) {
+    return new Promise(function (nhan, tuChoi) {
+      var gd = db.transaction(NGAN_SAO_LUU, 'readwrite');
+      gd.objectStore(NGAN_SAO_LUU).put(ban);
+      gd.oncomplete = function () { nhan(); };
+      gd.onerror = function () { tuChoi(gd.error); };
+    });
+  });
+}
+
+/**
+ * Đọc danh sách bản sao lưu, mới nhất trước.
+ * @returns {Promise<Array>}
+ */
+function docCacBanSaoLuu() {
+  return moKho().then(function (db) {
+    return new Promise(function (nhan) {
+      var yc = db.transaction(NGAN_SAO_LUU, 'readonly').objectStore(NGAN_SAO_LUU).getAll();
+      yc.onsuccess = function () {
+        var ds = yc.result || [];
+        ds.sort(function (a, b) { return b.id - a.id; });
+        nhan(ds);
+      };
+      yc.onerror = function () { nhan([]); };
+    });
+  }).catch(function () { return []; });
+}
+
+/** Xoá một bản sao lưu khỏi kho. @returns {Promise<void>} */
+function xoaBanSaoLuu(id) {
+  return moKho().then(function (db) {
+    return new Promise(function (nhan, tuChoi) {
+      var gd = db.transaction(NGAN_SAO_LUU, 'readwrite');
+      gd.objectStore(NGAN_SAO_LUU).delete(id);
+      gd.oncomplete = function () { nhan(); };
+      gd.onerror = function () { tuChoi(gd.error); };
+    });
+  });
+}
+
+/**
+ * Dọn các bản sao lưu cũ, chỉ giữ lại `caiDat.giuToiDa` bản gần nhất.
+ * @returns {Promise<number>} số bản đã xoá
+ *
+ * Cần thiết vì iPhone không cho web app dùng vô hạn dung lượng; để kho phình
+ * mãi thì Safari sẽ dọn sạch cả dữ liệu chính chứ không riêng phần sao lưu.
+ */
+function donBanCu() {
+  return docCacBanSaoLuu().then(function (ds) {
+    var thua = ds.slice(caiDat.giuToiDa);
+    var chuoi = Promise.resolve();
+    thua.forEach(function (b) { chuoi = chuoi.then(function () { return xoaBanSaoLuu(b.id); }); });
+    return chuoi.then(function () { return thua.length; });
+  });
+}
+
+/** Trình duyệt này có cho chọn thư mục thật không. @returns {boolean} */
+function coApiThuMuc() {
+  return typeof window.showDirectoryPicker === 'function';
+}
+
+/**
+ * Ghi một bản sao lưu ra thư mục thật đã chọn.
+ * @param {object} ban bản sao lưu
+ * @returns {Promise<boolean>} true nếu ghi được ra thư mục
+ *
+ * Trả về false chứ không ném lỗi khi chưa chọn thư mục hoặc quyền đã hết hạn —
+ * sao lưu vào kho trong máy vẫn phải thành công dù phần ra thư mục có hỏng.
+ */
+function ghiRaThuMuc(ban) {
+  if (!thuMucSaoLuu || !thuMucSaoLuu.getFileHandle) return Promise.resolve(false);
+  return Promise.resolve(thuMucSaoLuu.queryPermission({ mode: 'readwrite' }))
+    .then(function (quyen) {
+      if (quyen !== 'granted') return false;
+      return thuMucSaoLuu.getFileHandle(tenTepSaoLuu(ban), { create: true })
+        .then(function (tep) { return tep.createWritable(); })
+        .then(function (but) {
+          return Promise.resolve(but.write(ban.noiDung)).then(function () { return but.close(); });
+        })
+        .then(function () { return true; });
+    })
+    .catch(function () { return false; });
+}
+
+/**
+ * Tạo một bản sao lưu.
+ * @param {string} coCau vì sao có bản này: 'tay' | 'mo-app' | 'dinh-ky'
+ * @param {boolean} [batBuoc] true thì tạo cả khi dữ liệu chưa đổi (nút bấm tay)
+ * @returns {Promise<object|null>} bản vừa tạo, hoặc null khi bỏ qua vì chưa đổi gì
+ */
+function taoBanSaoLuu(coCau, batBuoc) {
+  var noi = JSON.stringify(goiDuLieu(), null, 2);
+  var van = vanTay(khoanTrongMay);
+  if (!batBuoc && caiDat.vanTayCuoi === van) return Promise.resolve(null);
+
+  var ban = {
+    id: sinhMa(),
+    luc: new Date().toISOString(),
+    soKhoan: khoanTrongMay.length,
+    coCau: coCau,
+    kichThuoc: noi.length,
+    noiDung: noi,
+    raThuMuc: false
+  };
+
+  return luuBanVaoKho(ban)
+    .then(function () {
+      caiDat.lanCuoi = ban.luc;
+      caiDat.vanTayCuoi = van;
+      return luuCaiDat();
+    })
+    .then(function () { return ghiRaThuMuc(ban); })
+    .then(function (raNgoai) {
+      ban.raThuMuc = raNgoai;
+      return raNgoai ? luuBanVaoKho(ban) : null;
+    })
+    .then(function () { return donBanCu(); })
+    .then(function () { return ban; });
+}
+
+/**
+ * Xem đã tới lúc sao lưu tự động chưa, tới thì làm.
+ * @param {boolean} laLucMoApp true khi vừa mở app hoặc vừa quay lại app
+ * @returns {Promise<object|null>} bản vừa tạo, hoặc null nếu chưa tới lúc
+ *
+ * Mức 'mo-app' chỉ chạy lúc mở; các mức theo giờ thì so với `caiDat.lanCuoi`.
+ * Cả hai đều còn một chốt nữa là dấu vân dữ liệu, nên sổ không đổi thì dù tới
+ * hạn cũng không đẻ thêm bản trùng.
+ */
+function kiemTraTuDong(laLucMoApp) {
+  if (!caiDat || caiDat.tuDong === 'tat') return Promise.resolve(null);
+  if (caiDat.tuDong === 'mo-app') {
+    return laLucMoApp ? taoBanSaoLuu('mo-app') : Promise.resolve(null);
+  }
+  var gio = GIO_CUA_MUC[caiDat.tuDong];
+  if (!gio) return Promise.resolve(null);
+  var cuoi = caiDat.lanCuoi ? new Date(caiDat.lanCuoi).getTime() : 0;
+  if (Date.now() - cuoi < gio * 3600000) return Promise.resolve(null);
+  return taoBanSaoLuu('dinh-ky');
+}
+
+/**
+ * Đưa một bản sao lưu ra ngoài app thành tệp.
+ * @param {object} ban bản sao lưu
+ * @returns {Promise<void>}
+ *
+ * Trên iPhone ưu tiên bảng chia sẻ của iOS (navigator.share có kèm tệp) vì từ
+ * đó chọn được "Lưu vào Tệp" rồi chỉ đúng thư mục muốn để. Máy nào không có thì
+ * lùi về cách tải xuống thường.
+ */
+function daBanRaTep(ban) {
+  var ten = tenTepSaoLuu(ban);
+  var mau = new Blob([ban.noiDung], { type: 'application/json' });
+  var tep = new File([mau], ten, { type: 'application/json' });
+
+  if (navigator.canShare && navigator.canShare({ files: [tep] }) && navigator.share) {
+    return navigator.share({ files: [tep], title: ten })
+      .then(function () { nhanNgan('Đã gửi sang Tệp'); })
+      .catch(function () { /* người dùng bấm huỷ, không phải lỗi */ });
+  }
+
+  var duong = URL.createObjectURL(mau);
+  var a = document.createElement('a');
+  a.href = duong; a.download = ten;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(function () { URL.revokeObjectURL(duong); }, 4000);
+  nhanNgan('Đã lưu ' + ten);
+  return Promise.resolve();
+}
+
+/**
+ * Khôi phục sổ từ một bản sao lưu trong kho.
+ * @param {object} ban bản sao lưu
+ * @returns {Promise<void>}
+ *
+ * Gộp chứ không đè: khoản nào trùng `id` thì bỏ qua, nên khôi phục xong không
+ * mất những khoản ghi thêm sau lúc sao lưu. Muốn quay hẳn về trạng thái cũ thì
+ * xoá tay khoản thừa — thà thừa còn hơn mất.
+ */
+function khoiPhucTuBan(ban) {
+  var goi;
+  try { goi = JSON.parse(ban.noiDung); } catch (e) { nhanNgan('Bản này hỏng, không đọc được', 3); return Promise.resolve(); }
+  var ds = (goi && goi.khoan) || [];
+  var daCo = {};
+  khoanTrongMay.forEach(function (k) { daCo[k.id] = true; });
+  var them = ds.filter(function (k) { return !daCo[k.id]; });
+  var chuoi = Promise.resolve();
+  them.forEach(function (k) {
+    chuoi = chuoi.then(function () { return luuKhoan(k); })
+      .then(function () { khoanTrongMay.push(k); });
+  });
+  return chuoi.then(function () {
+    khoanTrongMay.sort(function (a, b) { return new Date(b.luc) - new Date(a.luc); });
+    veLai();
+    veDanhSachSaoLuu();
+    nhanNgan(them.length ? 'Đã khôi phục ' + them.length + ' khoản' : 'Sổ đã có đủ, không thiếu khoản nào');
+  });
+}
+
+/**
+ * Vẽ lại phần cài đặt và danh sách bản sao lưu trong hộp.
+ * @returns {Promise<void>}
+ */
+function veDanhSachSaoLuu() {
+  document.getElementById('chon-tu-dong').value = caiDat.tuDong;
+  document.getElementById('chon-giu').value = String(caiDat.giuToiDa);
+  document.getElementById('lan-cuoi').textContent = caiDat.lanCuoi
+    ? gioVN(caiDat.lanCuoi) + ' · ' + ngayVN(caiDat.lanCuoi)
+    : 'chưa sao lưu lần nào';
+
+  // Phần thư mục thật: chỉ máy tính mới có, iPhone thì nói rõ vì sao không có
+  var khungTM = document.getElementById('khung-thu-muc');
+  if (coApiThuMuc()) {
+    khungTM.innerHTML = '';
+    var nutTM = document.createElement('button');
+    nutTM.type = 'button';
+    nutTM.className = 'nut-phu';
+    nutTM.style.flex = '1';
+    nutTM.textContent = thuMucSaoLuu ? 'Đổi thư mục (' + thuMucSaoLuu.name + ')' : 'Chọn thư mục sao lưu';
+    nutTM.onclick = chonThuMucSaoLuu;
+    var hang = document.createElement('div');
+    hang.className = 'hang-nut';
+    hang.style.marginTop = '8px';
+    hang.appendChild(nutTM);
+    khungTM.appendChild(hang);
+  } else {
+    khungTM.innerHTML = '<div class="canh-bao">iPhone không cho web app tự ghi vào thư mục. '
+      + 'Bản sao lưu nằm an toàn trong máy ở mục dưới; muốn để vào Tệp thì bấm '
+      + '<b>Ra tệp</b> ở bản cần lưu rồi chọn “Lưu vào Tệp”.</div>';
+  }
+
+  return docCacBanSaoLuu().then(function (ds) {
+    var khung = document.getElementById('ds-sao-luu');
+    document.getElementById('dem-sao-luu').textContent = ds.length;
+    khung.innerHTML = '';
+    if (!ds.length) {
+      khung.innerHTML = '<div class="trong" style="padding:18px 0">Chưa có bản sao lưu nào.</div>';
+      return;
+    }
+    ds.forEach(function (b) { khung.appendChild(veMotBanSaoLuu(b)); });
+  });
+}
+
+/**
+ * Dựng một dòng trong danh sách bản sao lưu.
+ * @param {object} b bản sao lưu
+ * @returns {HTMLElement}
+ */
+function veMotBanSaoLuu(b) {
+  var o = document.createElement('div');
+  o.className = 'ban-sl';
+
+  var dau = document.createElement('div');
+  dau.className = 'ban-dau';
+  var trai = document.createElement('div');
+  trai.innerHTML = '<div class="ban-luc">' + gioVN(b.luc) + ' · ' + ngayVN(b.luc) + '</div>'
+    + '<div class="ban-phu">' + b.soKhoan + ' khoản · ' + Math.max(1, Math.round(b.kichThuoc / 1024)) + ' KB</div>';
+  var nhan = document.createElement('span');
+  nhan.className = 'ban-nhan ' + b.coCau;
+  nhan.textContent = { tay: 'Bấm tay', 'mo-app': 'Mở app', 'dinh-ky': 'Định kỳ' }[b.coCau] || b.coCau;
+  dau.appendChild(trai);
+  dau.appendChild(nhan);
+  o.appendChild(dau);
+
+  if (b.raThuMuc) {
+    var ra = document.createElement('div');
+    ra.className = 'ban-phu';
+    ra.style.color = 'var(--green)';
+    ra.textContent = '✓ đã ghi ra thư mục';
+    o.appendChild(ra);
+  }
+
+  var xem = document.createElement('div');
+  xem.className = 'ban-xem';
+  xem.hidden = true;
+  o.appendChild(xem);
+
+  var hang = document.createElement('div');
+  hang.className = 'ban-nut';
+  [
+    ['Xem', function () {
+      xem.hidden = !xem.hidden;
+      if (!xem.hidden && !xem.textContent) xem.textContent = tomTatBan(b);
+    }],
+    ['Khôi phục', function () { khoiPhucTuBan(b); }],
+    ['Ra tệp', function () { daBanRaTep(b); }],
+    ['Xoá', function () {
+      xoaBanSaoLuu(b.id).then(veDanhSachSaoLuu).then(function () { nhanNgan('Đã xoá bản sao lưu'); });
+    }]
+  ].forEach(function (c) {
+    var n = document.createElement('button');
+    n.type = 'button';
+    n.className = 'nut-nho';
+    n.textContent = c[0];
+    n.onclick = c[1];
+    hang.appendChild(n);
+  });
+  o.appendChild(hang);
+  return o;
+}
+
+/**
+ * Tóm tắt nội dung một bản sao lưu để xem nhanh mà không phải mở tệp.
+ * @param {object} b bản sao lưu
+ * @returns {string} vài dòng chữ: tổng thu, tổng chi, số dư và mấy khoản đầu
+ */
+function tomTatBan(b) {
+  var goi;
+  try { goi = JSON.parse(b.noiDung); } catch (e) { return 'Bản này hỏng, không đọc được.'; }
+  var ds = (goi && goi.khoan) || [];
+  var thu = 0, chi = 0;
+  ds.forEach(function (k) { if (k.loai === 'cong') thu += k.soTien; else chi += k.soTien; });
+  var dong = ['Thu ' + dinhDangTien(thu) + '  ·  Chi ' + dinhDangTien(chi)
+    + '  ·  Số dư ' + dinhDangTien(thu - chi), ''];
+  ds.slice(0, 6).forEach(function (k) {
+    dong.push((k.loai === 'cong' ? '+' : '−') + dinhDangTien(k.soTien) + '  '
+      + ngayVN(k.luc) + '  ' + (k.lyDo || '(chưa ghi lý do)'));
+  });
+  if (ds.length > 6) dong.push('… và ' + (ds.length - 6) + ' khoản nữa');
+  return dong.join('\n');
+}
+
+/**
+ * Cho người dùng chọn thư mục sao lưu trên máy tính.
+ * @returns {Promise<void>}
+ *
+ * Handle của thư mục cất luôn vào IndexedDB nên lần mở app sau không phải chọn
+ * lại. Quyền ghi thì trình duyệt vẫn hỏi lại sau mỗi lần khởi động — bấm nút
+ * này một cái là xin lại được, vì lệnh xin quyền bắt buộc phải đi kèm một cú
+ * chạm của người dùng.
+ */
+function chonThuMucSaoLuu() {
+  if (!coApiThuMuc()) { nhanNgan('Máy này không chọn thư mục được', 3); return Promise.resolve(); }
+  return window.showDirectoryPicker({ mode: 'readwrite' }).then(function (tm) {
+    thuMucSaoLuu = tm;
+    return ghiDongCaiDat('thuMuc', tm);
+  }).then(function () {
+    return taoBanSaoLuu('tay', true);
+  }).then(function () {
+    return veDanhSachSaoLuu();
+  }).then(function () {
+    nhanNgan('Đã chọn thư mục ' + thuMucSaoLuu.name);
+  }).catch(function () { /* người dùng bấm huỷ */ });
+}
+
+/**
+ * Nối mọi nút bấm vào việc của nó và nạp dữ liệu lần đầu.
+ * @returns {Promise<void>}
+ */
+function khoiDong() {
+  Array.prototype.forEach.call(document.querySelectorAll('.tab[data-trang]'), function (n) {
+    n.onclick = function () { moTrang(n.getAttribute('data-trang')); };
+  });
+  document.getElementById('nut-ghi').onclick = batNghe;
+  document.getElementById('tab-go-tay').onclick = moHopGoTay;
+
+  document.getElementById('chon-tru').onclick = function () { loaiDangChon = 'tru'; doiNutLoai(); };
+  document.getElementById('chon-cong').onclick = function () { loaiDangChon = 'cong'; doiNutLoai(); };
+  document.getElementById('huy-sua').onclick = dongHop;
+  document.getElementById('luu-sua').onclick = luuHopSua;
+  document.getElementById('xoa-khoan').onclick = function () {
+    if (dangSuaId === null) return;
+    var id = dangSuaId;
+    xoaKhoanTrongKho(id).then(function () {
+      khoanTrongMay = khoanTrongMay.filter(function (k) { return k.id !== id; });
+      dongHop(); veLai(); nhanNgan('Đã xoá khoản');
+    });
+  };
+
+  document.getElementById('huy-go-tay').onclick = dongHop;
+  document.getElementById('luu-go-tay').onclick = function () {
+    var cau = document.getElementById('o-cau').value.trim();
+    if (!cau) { nhanNgan('Chưa gõ gì cả'); return; }
+    dongHop();
+    ghiCacKhoan(tachCauNoi(cau), 'tay');
+  };
+
+  document.getElementById('nut-du-lieu').onclick = function () {
+    document.getElementById('dan-du-lieu').textContent =
+      'Sổ đang giữ ' + khoanTrongMay.length + ' khoản trong máy (IndexedDB).';
+    // Trong khung nhúng thì trình xem chặn tải tệp, giấu nút đi cho khỏi bấm hụt
+    document.getElementById('nut-xuat').style.display = chayTrongKhungNhung() ? 'none' : '';
+    document.getElementById('che-du-lieu').classList.add('hien');
+    veDanhSachSaoLuu();
+  };
+  document.getElementById('dong-du-lieu').onclick = dongHop;
+  document.getElementById('nut-xuat').onclick = xuatSaoLuu;
+  document.getElementById('o-nap').onchange = function (sk) {
+    if (sk.target.files && sk.target.files[0]) napSaoLuu(sk.target.files[0]);
+    sk.target.value = '';
+  };
+
+  document.getElementById('nut-backup').onclick = function () {
+    taoBanSaoLuu('tay', true)
+      .then(function (b) { return veDanhSachSaoLuu().then(function () { return b; }); })
+      .then(function (b) {
+        nhanNgan('Đã sao lưu ' + b.soKhoan + ' khoản'
+          + (b.raThuMuc ? ' ra thư mục' : ' vào máy'));
+      });
+  };
+  document.getElementById('chon-tu-dong').onchange = function (sk) {
+    caiDat.tuDong = sk.target.value;
+    luuCaiDat().then(function () {
+      nhanNgan('Tự động sao lưu: ' + TEN_TU_DONG[caiDat.tuDong]);
+      return kiemTraTuDong(caiDat.tuDong === 'mo-app');
+    }).then(veDanhSachSaoLuu);
+  };
+  document.getElementById('chon-giu').onchange = function (sk) {
+    caiDat.giuToiDa = parseInt(sk.target.value, 10);
+    luuCaiDat().then(donBanCu).then(veDanhSachSaoLuu);
+  };
+
+  ['che-sua', 'che-go-tay', 'che-du-lieu'].forEach(function (id) {
+    document.getElementById(id).onclick = function (sk) {
+      if (sk.target === this) dongHop();
+    };
+  });
+
+  moTrang('tong');
+  return napCaiDat().then(function () {
+    return docHetKhoan();
+  }).then(function (ds) {
+    khoanTrongMay = ds;
+    ds.forEach(function (k) { if (k.id > maCuoi) maCuoi = k.id; });
+    veLai();
+    return batSaoLuuTuDong();
+  });
+}
+
+/**
+ * Bật guồng sao lưu tự động: chạy một nhịp ngay lúc mở app rồi hẹn nhịp sau.
+ * @returns {Promise<object|null>} bản sao lưu vừa tạo lúc mở app, nếu có
+ *
+ * Ba đường kích hoạt, cần cả ba:
+ * - ngay lúc mở app, cho mức 'mo-app' và cho mức theo giờ mà đã quá hạn từ lâu;
+ * - mỗi phút một nhịp, để app mở suốt cả buổi vẫn tới hạn là sao lưu;
+ * - lúc quay lại app từ nền, vì iOS treo hẳn hẹn giờ khi app không hiện trên
+ *   màn hình, nhịp mỗi phút một mình là không đủ.
+ * Dấu vân dữ liệu chặn ở cuối nên ba đường này không đẻ ra bản trùng nhau.
+ */
+function batSaoLuuTuDong() {
+  if (henKiemTra) clearInterval(henKiemTra);
+  henKiemTra = setInterval(function () { kiemTraTuDong(false); }, 60000);
+  document.addEventListener('visibilitychange', function () {
+    if (!document.hidden) kiemTraTuDong(true);
+  });
+  return kiemTraTuDong(true);
+}
+
+/* Cửa cho bộ thử gọi vào: nạp dữ liệu mẫu, đọc số đang hiện, thêm khoản. */
+window.soTieuTien = {
+  tachCauNoi: tachCauNoi,
+  docSoTien: docSoTien,
+  chuanHoaCau: chuanHoaCau,
+  dinhDangTien: dinhDangTien,
+  congDon: congDon,
+  tinhSoDu: tinhSoDu,
+  ghiCacKhoan: ghiCacKhoan,
+  moTrang: moTrang,
+  veLai: veLai,
+  layKhoan: function () { return khoanTrongMay; },
+  napMau: function (ds) {
+    var chuoi = Promise.resolve();
+    ds.forEach(function (k) {
+      chuoi = chuoi.then(function () { return luuKhoan(k); })
+        .then(function () { khoanTrongMay.push(k); });
+    });
+    return chuoi.then(function () {
+      khoanTrongMay.sort(function (a, b) { return new Date(b.luc) - new Date(a.luc); });
+      veLai();
+    });
+  },
+  datMoc: function (trang, moc) { mocDangChon[trang] = moc; veLai(); },
+  // --- phần sao lưu ---
+  taoBanSaoLuu: taoBanSaoLuu,
+  docCacBanSaoLuu: docCacBanSaoLuu,
+  xoaBanSaoLuu: xoaBanSaoLuu,
+  khoiPhucTuBan: khoiPhucTuBan,
+  kiemTraTuDong: kiemTraTuDong,
+  veDanhSachSaoLuu: veDanhSachSaoLuu,
+  tenTepSaoLuu: tenTepSaoLuu,
+  tomTatBan: tomTatBan,
+  vanTay: vanTay,
+  layCaiDat: function () { return caiDat; },
+  datCaiDat: function (moi) {
+    Object.keys(moi).forEach(function (k) { caiDat[k] = moi[k]; });
+    return luuCaiDat();
+  },
+  xoaHetBanSaoLuu: function () {
+    return docCacBanSaoLuu().then(function (ds) {
+      var chuoi = Promise.resolve();
+      ds.forEach(function (b) { chuoi = chuoi.then(function () { return xoaBanSaoLuu(b.id); }); });
+      return chuoi;
+    });
+  }
+};
+
+window.addEventListener('DOMContentLoaded', function () {
+  khoiDong();
+  if ('serviceWorker' in navigator && location.protocol.indexOf('http') === 0) {
+    navigator.serviceWorker.register('sw.js').catch(function () { /* chạy không mạng cũng được */ });
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "Sổ tiêu tiền",
+  "short_name": "Sổ tiền",
+  "description": "Ghi chi tiêu bằng giọng nói, cộng dồn ngay.",
+  "lang": "vi",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#EDF1F9",
+  "theme_color": "#123C91",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='104' fill='%23123C91'/%3E%3Ctext x='256' y='344' font-size='300' font-family='sans-serif' font-weight='bold' text-anchor='middle' fill='%23F4B60E'%3E%C4%91%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
