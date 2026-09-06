@@ -6,14 +6,14 @@
 <meta name="theme-color" content="#123C91">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Tingting">
+<meta name="apple-mobile-web-app-title" content="tingting!">
 <link rel="manifest" href="manifest.webmanifest">
 <!-- iOS không đọc icon trong manifest khi "Thêm vào Màn hình chính", chỉ tìm
      đúng thẻ apple-touch-icon này. Thiếu nó thì iPhone lấy ảnh chụp màn hình
      làm biểu tượng. Sinh lại các tệp png bằng: node thu/tao-bieu-tuong.js -->
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
-<title>Tingting</title>
+<title>tingting!</title>
 <style>
 /* Bảng màu bê nguyên từ Dashboard công việc để hai app nhìn ra là một bộ.
    Font dùng stack hệ thống vì app không được gọi CDN lúc chạy. */
@@ -29,10 +29,21 @@
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
 html,body{margin:0;padding:0;}
+/* Bo cuc ba tang co dinh: dau trang - vung cuon - thanh day.
+   Truoc day thanh day dung position:fixed, va tren iPhone no bi tinh sai khi
+   trang ngan hon man hinh: bam sang Kiem ve hay Loc (hai trang thuong it dong)
+   la ca thanh icon troi len nam ngay duoi noi dung. Bat duoc tren may anh ngay
+   07/09/2026. Cho body lam mot cot flex cao dung bang man hinh, chi cho rieng
+   <main> cuon, thi thanh day o duoi cung mot cach that su chu khong phai nho
+   trinh duyet neo ho — het duong sai.
+   Dung 100dvh de tru phan thanh dia chi Safari tu an hien; 100vh la bi hut mat
+   mot doan duoi day. */
+html{height:100%;}
 body{
   font-family:-apple-system,'SF Pro Text',system-ui,'Segoe UI',Roboto,sans-serif;
   background:var(--paper); color:var(--ink); line-height:1.45; font-size:15px;
-  padding-bottom:calc(var(--day-thanh) + env(safe-area-inset-bottom));
+  height:100vh; height:100dvh;
+  display:flex; flex-direction:column; overflow:hidden;
 }
 button{font-family:inherit;}
 
@@ -44,10 +55,41 @@ header{
   background:linear-gradient(150deg,#1A4FB2 0%,#123C91 45%,#0C2C6E 100%);
   color:#fff; padding:calc(7px + env(safe-area-inset-top)) 14px 7px;
   border-bottom:2px solid var(--gold);
-  position:sticky; top:0; z-index:20;
+  flex:none; z-index:20;
 }
-header h1{margin:0; font-size:17px; font-weight:800; letter-spacing:.2px;}
+header h1{margin:0; font-size:22px; font-weight:800; letter-spacing:-.3px; line-height:1.06;}
 header .hang{display:flex; align-items:center; justify-content:space-between; gap:10px;}
+.khoi-ten{min-width:0;}
+
+/* ---- Tên app: chữ mạ vàng có ánh sáng chạy qua ----
+   Cách làm: đổ một dải chuyển sắc vàng rộng gấp đôi bề ngang chữ rồi cắt dải ấy
+   theo hình chữ bằng background-clip, sau đó cho nó trôi ngang. Vệt sáng nhạt ở
+   giữa dải chính là chỗ "loé" khi lướt qua, thành ra chữ như được đánh bóng.
+   Chữ bị cắt theo nền thì không nhận text-shadow nữa, nên đổ bóng bằng
+   drop-shadow ở lớp ngoài để chữ vẫn nổi khỏi nền xanh. */
+/* inline-block chu khong inline-flex: flex bien hai span con thanh khoi rieng,
+   trong thi van nam ngang nhung doc chu ra lai thanh "tingting" xuong dong "!". */
+.ten-app{display:inline-block; white-space:nowrap;
+  filter:drop-shadow(0 1px 1px rgba(0,0,0,.35));}
+.chu-vang{
+  background-image:linear-gradient(100deg,
+    #C8890A 0%, #F4B60E 14%, #FFE9A8 28%, #FFFDF2 36%,
+    #FFE9A8 44%, #F4B60E 58%, #D9930A 74%, #F4B60E 88%, #FFE090 100%);
+  background-size:230% 100%;
+  -webkit-background-clip:text; background-clip:text;
+  color:transparent; -webkit-text-fill-color:transparent;
+  animation:anhKim 7s linear infinite;
+}
+@keyframes anhKim{from{background-position:230% 0;} to{background-position:0% 0;}}
+/* Dấu than để trắng ngà cho bật hẳn khỏi phần chữ vàng, như một hạt sáng */
+.cham-than{color:#FFFFFF; margin-left:1px;
+  text-shadow:0 0 10px rgba(255,214,74,.9), 0 1px 1px rgba(0,0,0,.3);}
+/* Chữ ký nhỏ: mảnh, giãn chữ, đủ mờ để không tranh chỗ với tên app */
+.chu-ky{font-size:8.5px; font-weight:700; letter-spacing:2.6px;
+  text-transform:uppercase; color:rgba(255,255,255,.62); margin-top:-1px;
+  padding-left:1px;}
+/* Máy nào người dùng đã tắt hiệu ứng chuyển động thì đứng yên, chữ vẫn vàng */
+@media (prefers-reduced-motion: reduce){ .chu-vang{animation:none;} }
 .nut-dau{background:rgba(255,255,255,.14); color:#fff; border:1px solid rgba(255,255,255,.28);
   border-radius:999px; padding:5px 11px 5px 9px; font-size:12px; font-weight:700;
   cursor:pointer; display:flex; align-items:center; gap:5px;}
@@ -56,7 +98,10 @@ header .hang{display:flex; align-items:center; justify-content:space-between; ga
 .cap-nut-dau{display:flex; align-items:center; gap:7px;}
 #tab-go-tay{padding:5px 9px;}
 
-.than{padding:12px 14px 6px;}
+/* Vung noi dung: phan duy nhat duoc cuon. min-height:0 la bat buoc, thieu no
+   thi flex item khong chiu co lai va vung cuon tran ra ngoai man hinh. */
+.than{padding:12px 14px 6px; flex:1 1 auto; min-height:0; overflow-y:auto;
+  -webkit-overflow-scrolling:touch; overscroll-behavior:contain;}
 
 /* ---- Thẻ chung ---- */
 .the{background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow); padding:16px;}
@@ -145,7 +190,7 @@ header .hang{display:flex; align-items:center; justify-content:space-between; ga
    Kéo sát mép dưới máy: chỉ chừa đúng phần safe-area của thanh Home iPhone,
    bỏ hết đệm thừa. Chừa safe-area là bắt buộc — bỏ nốt thì thanh Home nằm đè
    lên chữ và vuốt lên là bấm nhầm tab. */
-.thanh-day{position:fixed; left:0; right:0; bottom:0; z-index:30;
+.thanh-day{flex:none; z-index:30;
   background:var(--card); border-top:1px solid var(--line);
   box-shadow:0 -4px 18px rgba(18,44,110,.10);
   padding:4px 6px calc(1px + env(safe-area-inset-bottom));
@@ -207,6 +252,26 @@ header .hang{display:flex; align-items:center; justify-content:space-between; ga
   padding:10px 12px; font-size:12.5px; font-weight:600; margin:10px 0;}
 .dong-tin{font-size:12.5px; color:var(--ink-soft); margin-top:10px;}
 .dong-tin b{color:var(--ink);}
+
+/* ---- Khối từ khoá nhận diện trong Cài đặt ---- */
+.khoi-tu{border:1px solid var(--line); border-radius:12px; padding:10px 11px; margin-top:8px;}
+.nhan-tu{font-size:11.5px; font-weight:800; letter-spacing:.6px; text-transform:uppercase;
+  margin-bottom:7px;}
+.nhan-tu.tu-ra{color:var(--red);} .nhan-tu.tu-vao{color:var(--green);}
+.ds-tu{display:flex; flex-wrap:wrap; gap:5px;}
+.tu{display:inline-flex; align-items:center; gap:5px; font-size:12.5px; font-weight:700;
+  padding:4px 9px; border-radius:999px; background:var(--paper); color:var(--ink-soft);
+  border:1px solid var(--line);}
+/* Từ có sẵn của app để mờ hơn hẳn, nhìn là biết không đụng vào được */
+.tu.goc{opacity:.62;}
+.tu.rieng{background:var(--card); color:var(--ink); border-color:var(--ink-soft);}
+.tu .bo{border:none; background:none; padding:0; margin:0; cursor:pointer;
+  font-size:14px; line-height:1; color:var(--red); font-weight:800;}
+.hang-them{display:flex; gap:6px; margin-top:9px;}
+.hang-them input{flex:1; min-width:0; padding:9px 11px; font-size:15px;}
+.nut-them{flex:none; background:var(--navy); color:#fff; border:none; border-radius:10px;
+  padding:9px 15px; font-weight:800; font-size:13.5px; cursor:pointer;}
+.nut-them:active{filter:brightness(1.15);}
 
 /* ---- Một bản sao lưu trong danh sách ---- */
 .ban-sl{border:1px solid var(--line); border-radius:12px; padding:10px 12px; margin-top:8px;}
@@ -304,7 +369,10 @@ html[data-giao-dien="toi"] .dai-nghe{background:#33333B; box-shadow:0 6px 20px r
 
 <header>
   <div class="hang">
-    <h1>Tingting</h1>
+    <div class="khoi-ten">
+      <h1 class="ten-app"><span class="chu-vang">tingting</span><span class="cham-than">!</span></h1>
+      <div class="chu-ky">by SirV</div>
+    </div>
     <div class="cap-nut-dau">
     <!-- Gõ tay dời từ thanh đáy lên đây để nhường chỗ cho tab Lọc. Vẫn phải
          giữ lối vào này: máy nào không nghe được thì đây là đường duy nhất
@@ -494,6 +562,28 @@ html[data-giao-dien="toi"] .dai-nghe{background:#33333B; box-shadow:0 6px 20px r
       <option value="toi">Tối</option>
     </select>
 
+    <label>Từ khoá nhận diện</label>
+    <div class="dan" style="margin-bottom:2px">Từ mở đầu câu quyết định khoản là tiền ra
+      hay tiền vào. Anh thêm được từ của riêng mình; từ có sẵn của app để mờ, không xoá được.</div>
+
+    <div class="khoi-tu">
+      <div class="nhan-tu tu-ra">− Tiền ra</div>
+      <div class="ds-tu" id="ds-tu-ra"></div>
+      <div class="hang-them">
+        <input id="o-tu-ra" type="text" autocomplete="off" placeholder="ví dụ: xỉa, cúng, biếu">
+        <button class="nut-them" type="button" id="them-tu-ra">Thêm</button>
+      </div>
+    </div>
+
+    <div class="khoi-tu">
+      <div class="nhan-tu tu-vao">+ Tiền vào</div>
+      <div class="ds-tu" id="ds-tu-vao"></div>
+      <div class="hang-them">
+        <input id="o-tu-vao" type="text" autocomplete="off" placeholder="ví dụ: về, hoàn, rút">
+        <button class="nut-them" type="button" id="them-tu-vao">Thêm</button>
+      </div>
+    </div>
+
     <label>Tự động sao lưu</label>
     <select id="chon-tu-dong">
       <option value="tat">Tắt</option>
@@ -549,6 +639,68 @@ var TU_CONG = ['nhan', 'cong', 'thu', 'duoc', 'them', 'luong', 'thuong', 'ban'];
 /** Cụm hai từ phải thử khớp TRƯỚC các từ đơn, vì "đòi" một mình không có nghĩa
  *  cộng tiền, phải đủ "đòi được" mới là tiền vào. */
 var CUM_CONG = ['doi duoc'];
+
+/** Cụm nhiều từ mở đầu khoản TRỪ. Mặc định trống, chỗ này dành cho từ khoá
+ *  người dùng tự thêm trong Cài đặt. */
+var CUM_TRU = [];
+
+/* Từ khoá người dùng tự thêm trong Cài đặt, nạp vào bằng datTuKhoaThem().
+   Để riêng khỏi bảng mặc định để lúc nào cũng phân biệt được đâu là từ gốc của
+   app (không xoá được) và đâu là từ anh tự thêm (xoá được). */
+var TU_THEM_RA = [];
+var TU_THEM_VAO = [];
+
+/** Từ đơn mở đầu khoản trừ: bảng gốc cộng phần người dùng thêm. */
+function tuDonRa() {
+  return TU_TRU.concat(TU_THEM_RA.filter(function (t) { return t.indexOf(' ') < 0; }));
+}
+/** Từ đơn mở đầu khoản cộng: bảng gốc cộng phần người dùng thêm. */
+function tuDonVao() {
+  return TU_CONG.concat(TU_THEM_VAO.filter(function (t) { return t.indexOf(' ') < 0; }));
+}
+/** Cụm nhiều từ mở đầu khoản trừ. */
+function cumRa() {
+  return CUM_TRU.concat(TU_THEM_RA.filter(function (t) { return t.indexOf(' ') >= 0; }));
+}
+/** Cụm nhiều từ mở đầu khoản cộng. */
+function cumVao() {
+  return CUM_CONG.concat(TU_THEM_VAO.filter(function (t) { return t.indexOf(' ') >= 0; }));
+}
+
+/**
+ * Chuẩn hoá một danh sách từ khoá người dùng gõ vào.
+ * @param {Array<string>} ds danh sách thô
+ * @returns {Array<string>} đã bỏ dấu, hạ chữ thường, dọn dấu câu, bỏ trùng
+ *
+ * Phải bỏ dấu vì câu nói cũng được bỏ dấu trước khi đối chiếu — anh gõ "xiền"
+ * hay "xien" thì đều thành "xien", khớp được cả hai kiểu máy nhận dạng trả về.
+ */
+function chuanHoaTuKhoa(ds) {
+  var ra = [];
+  (ds || []).forEach(function (t) {
+    var s = boDau(t).replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim();
+    if (s && ra.indexOf(s) < 0) ra.push(s);
+  });
+  return ra;
+}
+
+/**
+ * Nạp từ khoá người dùng đã thêm vào bộ tách.
+ * @param {Array<string>} ra từ khoá cho khoản tiền ra
+ * @param {Array<string>} vao từ khoá cho khoản tiền vào
+ *
+ * Từ nào đã có sẵn trong bảng gốc thì bỏ đi, thêm vào cũng không đổi gì. Một từ
+ * lỡ nằm cả hai bên thì bên TIỀN VÀO thắng — phía giao diện đã chặn không cho
+ * thêm trùng, đây chỉ là chốt cuối phòng khi dữ liệu cũ có sẵn thứ đó.
+ */
+function datTuKhoaThem(ra, vao) {
+  TU_THEM_VAO = chuanHoaTuKhoa(vao).filter(function (t) {
+    return TU_CONG.indexOf(t) < 0 && CUM_CONG.indexOf(t) < 0;
+  });
+  TU_THEM_RA = chuanHoaTuKhoa(ra).filter(function (t) {
+    return TU_TRU.indexOf(t) < 0 && CUM_TRU.indexOf(t) < 0 && TU_THEM_VAO.indexOf(t) < 0;
+  });
+}
 
 /** Chữ số tiếng Việt (đã bỏ dấu). "mot"=1 và "mot"(mốt)=1 trùng nhau nên chỉ cần
  *  một dòng; "tu"(tư)=4 và "lam"(lăm)=5 là các biến thể khi đứng ở hàng đơn vị. */
@@ -862,11 +1014,13 @@ function tachMotKhoan(manh) {
   // --- loại khoản: cụm hai từ trước, rồi mới tới từ đơn ---
   var loai = 'tru', batDau = 0;
   var haiTu = (tuKhong[0] || '') + ' ' + (tuKhong[1] || '');
-  if (CUM_CONG.indexOf(haiTu) >= 0) {
+  if (cumVao().indexOf(haiTu) >= 0) {
     loai = 'cong'; batDau = 2;
-  } else if (TU_CONG.indexOf(tuKhong[0]) >= 0) {
+  } else if (cumRa().indexOf(haiTu) >= 0) {
+    loai = 'tru'; batDau = 2;
+  } else if (tuDonVao().indexOf(tuKhong[0]) >= 0) {
     loai = 'cong'; batDau = 1;
-  } else if (TU_TRU.indexOf(tuKhong[0]) >= 0) {
+  } else if (tuDonRa().indexOf(tuKhong[0]) >= 0) {
     loai = 'tru'; batDau = 1;
   }
 
@@ -949,7 +1103,7 @@ function tachTheoVa(manh) {
   for (var i = 1; i < tu.length - 1; i++) {
     if (khong[i] !== 'va') continue;
     var ke = khong[i + 1];
-    if (TU_TRU.indexOf(ke) < 0 && TU_CONG.indexOf(ke) < 0) continue;
+    if (tuDonRa().indexOf(ke) < 0 && tuDonVao().indexOf(ke) < 0) continue;
     var sau = tu.slice(i + 1).join(' ');
     if (tachMotKhoan(sau).soTien === null) continue;   // sau "và" không có tiền thì đừng cắt
     ra.push(tu.slice(batDau, i).join(' '));
@@ -1176,6 +1330,7 @@ var nguyenVanNhap = '';
 var boNghe = null;
 var dangNghe = false;
 var dangKhoiDong = false;   // đã bấm nút nhưng bộ nghe chưa kịp chạy
+var henTuDung = null;       // hẹn giờ cắt phiên nghe bị treo
 
 /**
  * Mở IndexedDB, tạo đủ ba ngăn nếu chưa có.
@@ -1613,7 +1768,9 @@ function moTrang(ten) {
   Array.prototype.forEach.call(document.querySelectorAll('.tab[data-trang]'), function (n) {
     n.classList.toggle('chon', n.getAttribute('data-trang') === ten);
   });
-  window.scrollTo(0, 0);
+  // Vung cuon gio la <main class="than">, khong con la ca cua so nua
+  var than = document.querySelector('.than');
+  if (than) than.scrollTop = 0;
 }
 
 /**
@@ -1800,6 +1957,7 @@ function doiVeNutGhi(bat) {
  * sổ hoặc hiện báo lỗi của một phiên không còn tồn tại.
  */
 function donBoNghe() {
+  clearTimeout(henTuDung);
   if (!boNghe) return;
   boNghe.onstart = null;
   boNghe.onresult = null;
@@ -1838,6 +1996,7 @@ function batNghe() {
 
   dangKhoiDong = true;
   doiVeNutGhi(true);
+  var coPhienTruoc = boNghe !== null;
   donBoNghe();
 
   var may = new Bo();
@@ -1847,13 +2006,16 @@ function batNghe() {
   may.continuous = false;
   may.maxAlternatives = 1;
 
-  var cauCuoi = '';
+  var cauCuoi = '';     // phần trình duyệt đã chốt (isFinal)
+  var cauTam = '';      // phần còn đang đoán dở, giữ lại làm phao cứu sinh
   var chu = document.getElementById('chu-nghe');
 
   may.onstart = function () {
     if (boNghe !== may) return;
     dangNghe = true;
     dangKhoiDong = false;
+    // Phiên treo quá lâu thì tự dừng, không để nút đỏ mãi mà chẳng ghi được gì.
+    henTuDung = setTimeout(function () { if (boNghe === may) dungNghe(); }, 15000);
   };
   may.onresult = function (sk) {
     if (boNghe !== may) return;
@@ -1862,13 +2024,14 @@ function batNghe() {
       var mau = sk.results[i][0].transcript;
       if (sk.results[i].isFinal) cauCuoi += mau + ' '; else tam += mau;
     }
+    if (tam) cauTam = tam;
     chu.textContent = (cauCuoi + tam).trim();
   };
   may.onerror = function (sk) {
     if (boNghe !== may) return;
     // 'aborted' là do chính mình dừng hoặc bấm lại, không phải hỏng — im lặng.
     if (sk.error === 'aborted') return;
-    if (sk.error === 'no-speech') { nhanNgan('Không nghe thấy gì, thử lại nhé'); return; }
+    if (sk.error === 'no-speech') { nhanNgan('Không nghe thấy gì, anh nói lại nhé', 3); return; }
     if (sk.error === 'not-allowed' || sk.error === 'service-not-allowed') {
       nhanNgan('Chưa cho phép dùng micro', 3.4);
       return;
@@ -1877,15 +2040,31 @@ function batNghe() {
   };
   may.onend = function () {
     if (boNghe !== may) return;
+    clearTimeout(henTuDung);
     dangNghe = false;
     dangKhoiDong = false;
     doiVeNutGhi(false);
-    var cau = cauCuoi.trim();
-    if (cau) ghiCacKhoan(tachCauNoi(cau), 'noi');
+
+    /* PHAO CỨU SINH — chỗ này từng làm mất trắng câu nói của anh.
+       Safari trên iPhone hay đóng phiên mà chưa kịp chốt kết quả cuối: chữ đã
+       hiện ra trong dải "Đang nghe…" (đó là kết quả tạm) nhưng `cauCuoi` vẫn
+       rỗng, app im lặng không ghi mà cũng chẳng báo gì — đúng cái triệu chứng
+       "bấm vào nói xong không hiện ra chữ". Nên khi không có phần đã chốt thì
+       dùng phần đoán dở: thà ghi một câu hơi sai rồi anh sửa, còn hơn mất hẳn.
+       Nguyên văn vẫn được lưu kèm nên nhìn lại là biết máy nghe ra cái gì. */
+    var cau = cauCuoi.trim() || cauTam.trim();
+    if (cau) {
+      ghiCacKhoan(tachCauNoi(cau), 'noi');
+      return;
+    }
+    // Không được chữ nào: phải nói ra cho anh biết, đừng im lặng.
+    nhanNgan('Không nghe được câu nào — anh nói lại hoặc bấm ✎ để gõ tay', 4);
   };
 
-  // Chờ một nhịp cho iOS nhả hẳn micro của phiên trước rồi mới xin lại.
-  // Gọi start() ngay sau abort() thì gần như chắc chắn ăn 'aborted'.
+  // Chờ một nhịp cho iOS nhả hẳn micro của phiên trước rồi mới xin lại. Gọi
+  // start() ngay sau abort() thì gần như chắc chắn ăn 'aborted'. Lần bấm đầu
+  // tiên không có phiên nào trước đó nên vào thẳng, khỏi bắt anh đợi.
+  var cho = coPhienTruoc ? 180 : 0;
   setTimeout(function () {
     if (boNghe !== may) return;
     try {
@@ -1895,7 +2074,7 @@ function batNghe() {
       doiVeNutGhi(false);
       nhanNgan('Micro đang bận, anh bấm lại sau một nhịp', 3);
     }
-  }, 180);
+  }, cho);
 }
 
 /** Dừng bộ nghe giữa chừng; sự kiện onend sẽ lo phần ghi sổ. */
@@ -1992,7 +2171,9 @@ var CAI_DAT_MAC_DINH = {
   giuToiDa: 30,        // giữ bao nhiêu bản gần nhất, quá thì dọn bản cũ
   lanCuoi: '',         // ISO của lần sao lưu gần nhất
   vanTayCuoi: '',      // dấu vân dữ liệu lúc đó, để khỏi sao lưu trùng
-  giaoDien: 'may'      // 'may' (theo máy) | 'sang' | 'toi'
+  giaoDien: 'may',     // 'may' (theo máy) | 'sang' | 'toi'
+  tuThemRa: [],        // từ khoá nhận diện tiền ra do người dùng thêm
+  tuThemVao: []        // từ khoá nhận diện tiền vào do người dùng thêm
 };
 var KHOA_GIAO_DIEN = 'tingting-giao-dien';   // bản sao trong localStorage, đọc cho kịp lúc mở trang
 var caiDat = null;
@@ -2053,6 +2234,9 @@ function napCaiDat() {
     return docDongCaiDat('thuMuc');
   }).then(function (tm) {
     thuMucSaoLuu = tm || null;
+    // Nạp luôn vào bộ tách, nếu không thì câu nói đầu tiên sau khi mở app vẫn
+    // được tách bằng bảng từ khoá gốc, bỏ qua những từ anh đã thêm.
+    datTuKhoaThem(caiDat.tuThemRa, caiDat.tuThemVao);
     return caiDat;
   });
 }
@@ -2326,10 +2510,102 @@ function khoiPhucTuBan(ban) {
 }
 
 /**
+ * Vẽ hai danh sách từ khoá nhận diện trong Cài đặt.
+ *
+ * Từ có sẵn của app hiện mờ và không có nút xoá — bỏ chúng đi thì app hết hiểu
+ * những câu thông thường nhất, hại nhiều hơn lợi. Từ anh tự thêm thì đậm hơn và
+ * có dấu × để gỡ.
+ */
+function veDanhSachTuKhoa() {
+  [['ds-tu-ra', TU_TRU, TU_THEM_RA, 'tuThemRa'],
+    ['ds-tu-vao', TU_CONG.concat(CUM_CONG), TU_THEM_VAO, 'tuThemVao']
+  ].forEach(function (c) {
+    var khung = document.getElementById(c[0]);
+    var goc = c[1], rieng = c[2], khoa = c[3];
+    khung.innerHTML = '';
+    goc.forEach(function (t) {
+      var o = document.createElement('span');
+      o.className = 'tu goc';
+      o.textContent = t;
+      khung.appendChild(o);
+    });
+    rieng.forEach(function (t) {
+      var o = document.createElement('span');
+      o.className = 'tu rieng';
+      o.textContent = t;
+      var x = document.createElement('button');
+      x.type = 'button';
+      x.className = 'bo';
+      x.textContent = '×';
+      x.setAttribute('aria-label', 'Bỏ từ ' + t);
+      x.onclick = function () { boTuKhoa(khoa, t); };
+      o.appendChild(x);
+      khung.appendChild(o);
+    });
+  });
+}
+
+/**
+ * Thêm một từ khoá nhận diện.
+ * @param {string} khoa 'tuThemRa' hoặc 'tuThemVao'
+ * @param {string} chu chữ người dùng gõ
+ * @returns {Promise<void>}
+ *
+ * Chặn ba trường hợp vô nghĩa hoặc gây hại:
+ * - rỗng;
+ * - đã có sẵn trong bảng gốc hoặc đã thêm rồi — thêm nữa cũng không đổi gì;
+ * - đã nằm ở danh sách bên kia. Một từ không thể vừa là tiền ra vừa là tiền
+ *   vào; cho phép thì mỗi câu ra một kiểu, chính là thứ làm sổ tiền sai.
+ */
+function themTuKhoa(khoa, chu) {
+  var s = chuanHoaTuKhoa([chu])[0];
+  if (!s) { nhanNgan('Anh chưa gõ từ nào'); return Promise.resolve(); }
+
+  var laRa = khoa === 'tuThemRa';
+  var gocBenNay = laRa ? TU_TRU.concat(CUM_TRU) : TU_CONG.concat(CUM_CONG);
+  var gocBenKia = laRa ? TU_CONG.concat(CUM_CONG) : TU_TRU.concat(CUM_TRU);
+  var themBenNay = caiDat[khoa] || [];
+  var themBenKia = caiDat[laRa ? 'tuThemVao' : 'tuThemRa'] || [];
+
+  if (gocBenNay.indexOf(s) >= 0 || themBenNay.indexOf(s) >= 0) {
+    nhanNgan('“' + s + '” đã có trong danh sách này rồi', 3);
+    return Promise.resolve();
+  }
+  if (gocBenKia.indexOf(s) >= 0 || themBenKia.indexOf(s) >= 0) {
+    nhanNgan('“' + s + '” đang là từ của bên ' + (laRa ? 'tiền vào' : 'tiền ra')
+      + ', không dùng cho cả hai được', 4);
+    return Promise.resolve();
+  }
+
+  caiDat[khoa] = themBenNay.concat([s]);
+  datTuKhoaThem(caiDat.tuThemRa, caiDat.tuThemVao);
+  return luuCaiDat().then(function () {
+    veDanhSachTuKhoa();
+    nhanNgan('Từ giờ câu mở đầu bằng “' + s + '” tính là tiền ' + (laRa ? 'ra' : 'vào'), 3.4);
+  });
+}
+
+/**
+ * Bỏ một từ khoá do người dùng thêm.
+ * @param {string} khoa 'tuThemRa' hoặc 'tuThemVao'
+ * @param {string} tu từ cần bỏ (đã chuẩn hoá)
+ * @returns {Promise<void>}
+ */
+function boTuKhoa(khoa, tu) {
+  caiDat[khoa] = (caiDat[khoa] || []).filter(function (t) { return t !== tu; });
+  datTuKhoaThem(caiDat.tuThemRa, caiDat.tuThemVao);
+  return luuCaiDat().then(function () {
+    veDanhSachTuKhoa();
+    nhanNgan('Đã bỏ từ “' + tu + '”');
+  });
+}
+
+/**
  * Vẽ lại phần cài đặt và danh sách bản sao lưu trong hộp.
  * @returns {Promise<void>}
  */
 function veDanhSachSaoLuu() {
+  veDanhSachTuKhoa();
   document.getElementById('chon-giao-dien').value = caiDat.giaoDien;
   document.getElementById('chon-tu-dong').value = caiDat.tuDong;
   document.getElementById('chon-giu').value = String(caiDat.giuToiDa);
@@ -2527,6 +2803,20 @@ function khoiDong() {
           + (b.raThuMuc ? ' ra thư mục' : ' vào máy'));
       });
   };
+  [['them-tu-ra', 'o-tu-ra', 'tuThemRa'],
+    ['them-tu-vao', 'o-tu-vao', 'tuThemVao']].forEach(function (c) {
+    var nut = document.getElementById(c[0]);
+    var o = document.getElementById(c[1]);
+    function them() {
+      var chu = o.value;
+      o.value = '';
+      themTuKhoa(c[2], chu);
+    }
+    nut.onclick = them;
+    // Gõ xong bấm Enter là thêm luôn, khỏi phải với tay sang nút
+    o.onkeydown = function (sk) { if (sk.key === 'Enter') { sk.preventDefault(); them(); } };
+  });
+
   document.getElementById('chon-giao-dien').onchange = function (sk) {
     caiDat.giaoDien = sk.target.value;
     apDungGiaoDien(caiDat.giaoDien);
@@ -2634,6 +2924,10 @@ window.soTieuTien = {
   vanTay: vanTay,
   layCaiDat: function () { return caiDat; },
   apDungGiaoDien: apDungGiaoDien,
+  themTuKhoa: themTuKhoa,
+  boTuKhoa: boTuKhoa,
+  datTuKhoaThem: datTuKhoaThem,
+  layTuKhoaThem: function () { return { ra: TU_THEM_RA.slice(), vao: TU_THEM_VAO.slice() }; },
   goNhomNghinThua: goNhomNghinThua,
   datCaiDat: function (moi) {
     Object.keys(moi).forEach(function (k) { caiDat[k] = moi[k]; });
